@@ -81,7 +81,7 @@ $db['default'] = array(
 	'dsn'	=> '',
 	'hostname' => 'perituza-provanah.mysql.database.azure.com',
 	'username' => 'perituzaroot@perituza-provanah', //'raincatc_portal',
-    'password' => 'X#c1-F!s3-p$Cv=9Gcx', //'webzer@123',
+    'password' => 'P@ssw0rd', //'webzer@123',
 	'database' => 'talentc9_stage',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
