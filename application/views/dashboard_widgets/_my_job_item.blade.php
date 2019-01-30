@@ -1,0 +1,1170 @@
+
+    <script src="{{ base_url('public/js/jquery.min.js')}}"></script>
+    <?php 
+                                    
+    if(isset($myjob))
+    {
+        $job = Job::find($myjob);
+    }
+    else
+    {
+        $job = null;
+    }
+    
+    
+?>
+
+<!-- candidate rejected Message -->
+@if(isset($_GET['cddtrejmsg']) && $_GET['cddtrejmsg']=1)
+<section class="col-lg-12" id="rejected_message">
+    <div class="alert alert-danger alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        Candidate successfully rejected. We have notified the agency recruiter who represents the candidate.
+    </div>
+</section>
+<script>
+	setTimeout(function () {
+                window.location.replace("<?php echo(base_url('dashboard/index/'.$job->id));?>");
+            }, 4000);
+	</script>
+@endif
+
+@if(isset($_GET['schedule_success']) && $_GET['schedule_success']=1)
+  
+  <script>
+    alert("Success! Your group call has been scheduled. Be sure to open the email attachment and save the appointment to your calendar.");
+    window.location.replace("<?php echo(base_url('dashboard'));?>");
+  </script>
+
+@endif
+
+@if(isset($myjob))
+<div class="modal fade" tabindex="-1" role="dialog" id="group_messege_form{{$job->id}}">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span></button>
+                <h4 class="modal-title">Send Group Message</h4>
+            </div>
+            <form action="{{ base_url('jobs/send_group_messege/'.$job->id) }}" method="post" id="groupMessegeForm">
+
+            <div class="modal-body">
+                <textarea name="new_grp_msg{{$job->id}}" placeholder="Enter your message here" style="margin: 0px; width: 560px; height: 180px;"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                <input type="submit" class="btn btn-primary" value="Submit"> {{--data-form="#groupMessegeForm"--}}
+            </div>
+            </form>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+
+<div class="modal fade" tabindex="-2" role="dialog" id="group_call_form{{$job->id}}">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ base_url('meetings/send_meeting_invitations/'.$job->id) }}" method="post" id="groupMeetingForm">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span></button>
+                    <h4 class="modal-title">Schedule Group Call</h4>
+                </div>
+                <div class="modal-body" style="height:340px">
+                    <label for='metting-title' id='label-metting_title' class='col-sm-3 control-label'>Topic
+                    </label>
+                    <div class='col-sm-9'>
+                        <input type="text" name="meeting_title" value="" placeholder="Topic" data-required="true" id="meeting_title" class="form-control"><br>
+                    </div>
+                    <label for='metting-location' id='label-metting_location' class='col-sm-3 control-label'>Meeting Location
+                    </label>
+                    <div class='col-sm-9'>
+                        <input type="text" name="meeting_location" value="Conference Call" placeholder="Conference Call" data-required="true" id="meeting_location" class="form-control" readonly><br>
+                    </div>
+                    <label for='metting-start-date' id='label-metting_start_date' class='col-sm-3 control-label'>Start Date
+                    </label>
+                    <div class='col-sm-9'>
+                        <div class="input-group col-sm-6">
+                            <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                            <input type="text" name="meeting_start_date" id="meeting_start_date-{{$job->id}}"  class="form-control datepicker" placeholder="Start Date" data-required="true" autocomplete="off" required>
+                        </div>
+                        <div class="input-group col-sm-6"  style="float: right;margin-top: -30px;">
+                            <select name="meeting_start_time" id="meeting_start_time-{{$job->id}}">
+                              <option value="00:00">12:00 AM</option>
+                              <option value="00:30">12:30 AM</option>
+                              <option value="01:00">1:00 AM</option>
+                              <option value="01:30">1:30 AM</option>
+                              <option value="02:00">2:00 AM</option>
+                              <option value="02:30">2:30 AM</option>
+                              <option value="03:00">3:00 AM</option>
+                              <option value="03:30">3:30 AM</option>
+                              <option value="04:00">4:00 AM</option>
+                              <option value="04:30">4:30 AM</option>
+                              <option value="05:00">5:00 AM</option>
+                              <option value="05:30">5:30 AM</option>
+                              <option value="06:00">6:00 AM</option>
+                              <option value="06:30">6:30 AM</option>
+                              <option value="07:00">7:00 AM</option>
+                              <option value="07:30">7:30 AM</option>
+                              <option value="08:00">8:00 AM</option>
+                              <option value="08:30">8:30 AM</option>
+                              <option value="09:00">9:00 AM</option>
+                              <option value="09:30">9:30 AM</option>
+                              <option value="10:00">10:00 AM</option>
+                              <option value="10:30">10:30 AM</option>
+                              <option value="11:00">11:00 AM</option>
+                              <option value="11:30">11:30 AM</option>
+                              <option value="12:00">12:00 PM</option>
+                              <option value="12:30">12:30 PM</option>
+                              <option value="13:00">1:00 PM</option>
+                              <option value="13:30">1:30 PM</option>
+                              <option value="14:00">2:00 PM</option>
+                              <option value="14:30">2:30 PM</option>
+                              <option value="15:00">3:00 PM</option>
+                              <option value="15:30">3:30 PM</option>
+                              <option value="16:00">4:00 PM</option>
+                              <option value="16:30">4:30 PM</option>
+                              <option value="17:00">5:00 PM</option>
+                              <option value="17:30">5:30 PM</option>
+                              <option value="18:00">6:00 PM</option>
+                              <option value="18:30">6:30 PM</option>
+                              <option value="19:00">7:00 PM</option>
+                              <option value="19:30">7:30 PM</option>
+                              <option value="20:00">8:00 PM</option>
+                              <option value="20:30">8:30 PM</option>
+                              <option value="21:00">9:00 PM</option>
+                              <option value="21:30">9:30 PM</option>
+                              <option value="22:00">10:00 PM</option>
+                              <option value="22:30">10:30 PM</option>
+                              <option value="23:00">11:00 PM</option>
+                              <option value="23:30">11:30 PM</option>
+                            </select>
+                        </div><br>
+                    </div>
+
+
+                    <label for='metting-end-date' id='label-metting_end_date' class='col-sm-3 control-label'>End Date
+                    </label>
+                    <div class='col-sm-9'>
+                      <div class="input-group col-sm-6">
+                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                        <input type="text" name="meeting_end_date" id="meeting_end_date-{{$job->id}}" class="form-control datepicker" placeholder="End Date" data-required="true" autocomplete="off" required>
+                      </div>
+                      <div class="input-group col-sm-6"  style="float: right;margin-top: -30px;">
+                        <select name="meeting_end_time" id="meeting_end_time-{{$job->id}}">
+                          <option value="00:00">12:00 AM</option>
+                          <option value="00:30">12:30 AM</option>
+                          <option value="01:00">1:00 AM</option>
+                          <option value="01:30">1:30 AM</option>
+                          <option value="02:00">2:00 AM</option>
+                          <option value="02:30">2:30 AM</option>
+                          <option value="03:00">3:00 AM</option>
+                          <option value="03:30">3:30 AM</option>
+                          <option value="04:00">4:00 AM</option>
+                          <option value="04:30">4:30 AM</option>
+                          <option value="05:00">5:00 AM</option>
+                          <option value="05:30">5:30 AM</option>
+                          <option value="06:00">6:00 AM</option>
+                          <option value="06:30">6:30 AM</option>
+                          <option value="07:00">7:00 AM</option>
+                          <option value="07:30">7:30 AM</option>
+                          <option value="08:00">8:00 AM</option>
+                          <option value="08:30">8:30 AM</option>
+                          <option value="09:00">9:00 AM</option>
+                          <option value="09:30">9:30 AM</option>
+                          <option value="10:00">10:00 AM</option>
+                          <option value="10:30">10:30 AM</option>
+                          <option value="11:00">11:00 AM</option>
+                          <option value="11:30">11:30 AM</option>
+                          <option value="12:00">12:00 PM</option>
+                          <option value="12:30">12:30 PM</option>
+                          <option value="13:00">1:00 PM</option>
+                          <option value="13:30">1:30 PM</option>
+                          <option value="14:00">2:00 PM</option>
+                          <option value="14:30">2:30 PM</option>
+                          <option value="15:00">3:00 PM</option>
+                          <option value="15:30">3:30 PM</option>
+                          <option value="16:00">4:00 PM</option>
+                          <option value="16:30">4:30 PM</option>
+                          <option value="17:00">5:00 PM</option>
+                          <option value="17:30">5:30 PM</option>
+                          <option value="18:00">6:00 PM</option>
+                          <option value="18:30">6:30 PM</option>
+                          <option value="19:00">7:00 PM</option>
+                          <option value="19:30">7:30 PM</option>
+                          <option value="20:00">8:00 PM</option>
+                          <option value="20:30">8:30 PM</option>
+                          <option value="21:00">9:00 PM</option>
+                          <option value="21:30">9:30 PM</option>
+                          <option value="22:00">10:00 PM</option>
+                          <option value="22:30">10:30 PM</option>
+                          <option value="23:00">11:00 PM</option>
+                          <option value="23:30">11:30 PM</option>
+                        </select>
+                      </div><br>
+                    </div>
+                                            
+
+                    <label for='metting-time_one' id='label-metting_time_zone' class='col-sm-3 control-label'>Time Zone
+                    </label>
+                    <div class='col-sm-9'>
+                        <select name="metting_time_zone" style="height: 34px;padding: 6px 12px;font-size: 14px;line-height: 1.42857143;">  
+                          <option value="06-America/Chicago">Central Time (US and Canada)</option>
+                          <option value="07-America/Denver">Mountain Time (US and Canada)</option>
+                          <option value="08-America/Los_Angeles">Pacific Time (US and Canada)</option>
+                          <option value="05-America/New_York">Eastern Time (US and Canada)</option>
+                          <option value="05-America/Indianapolis">Indiana (East)</option>
+                          <option value="07-America/Phoenix">Arizona</option>
+                          <option value="10-Pacific/Honolulu">Hawaii</option>
+                          <option value="09-America/Anchorage">Alaska</option>
+                          <option value="04-America/Puerto_Rico">Puerto Rico</option>
+                          <option value="04-Canada/Atlantic">Atlantic Time (Canada)</option>
+                          <option value="08-America/Vancouver">Vancouver</option>
+                          <option value="07-America/Edmonton">Edmonton</option>
+                          <option value="06-America/Winnipeg">Winnipeg</option>
+                          <option value="06-America/Regina">Saskatchewan</option>
+                      </select> 
+                        <br><br>                                       
+                    </div>
+                    <br>    
+                    <label for='metting-message' id='label-metting_message' class='col-sm-3 control-label'>Message
+                    </label>
+                    <div class='col-sm-12'>
+                        <textarea type="text" name="meeting_message" id="meeting_message-{{$job->id}}" value="" placeholder="Enter your message here" data-required="true" id="meeting_message" class="form-control"></textarea><br>
+                    </div>
+
+                </div>
+                <!-- /.modal-body -->
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                    <input type="submit" class="btn btn-primary" value="Send"> {{--data-form="#groupMeetingForm"--}}
+                </div>
+
+
+            </form>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+</div>
+
+<!-- start copy -->
+
+<div id="popover-{{ $job->id }}" class="hide">
+  @include('jobs._job_details',['popover' => true])
+</div>
+<div class="box-group" id="accordion">
+<div class="panel box" style="border-top: none;">
+  <div class="box-header">
+    <h4 class="box-title" style="font-size: 16px;font-weight: 600;">
+      <a class="grade-num" data-toggle="collapse" data-parent="#accordion" href="#my-job-{{ $job->id }}"   
+        <?php 
+          $newCandidatesCount = $job->candidates()->where(['client_accepted'=>0])->count();
+          $hire_confirmation_check=false;
+          $candi_expand=false;
+          
+          foreach($job->candidates()->where('client_accepted','!=',-1)->orderBy('created_at', 'desc')->get() as $candidate)
+          {
+            $candidate = Candidate::with('hire_details')->find($candidate->id);
+            if($candidate->hired)
+            {}
+            elseif($candidate->hire_details->count() == 1)
+            {
+              $hire_confirmation_check = true;
+              $agn_expand=false;
+              $candi_expand=true;
+            }
+          }
+          if(($job->candidates()->where('client_accepted','=',0)->count()>0) || $hire_confirmation_check)
+          { 
+        ?>
+        style="border-color: #479;"
+      <?php 
+        } 
+      ?> >
+            <span class="btn btn-default btn-sm button-8px" data-toggle="tooltip" data-placement="right" title="Candidates"><i class="fa fa-users"></i> <!-- Change on Dashboard “View Candidates” and “View Agencies” to “Candidates” and “Agency Recruiters” and Make the popup message appear when you scroll over any part of the section icons for "Candidates" and "Agency Recruiters" -->
+        <?php if ($newCandidatesCount == 0){
+                      }else{ ?>
+                        <span class="label label-success"><?php echo $newCandidatesCount ?></span> 
+                     <?php } ?>
+                     </span>
+                  </a> 
+                  <?php $newagenciescount =  Accepted_job::where("job_id",$job->id)->whereBetween('estatus',[-1,0])->count(); ?>
+
+                  <a  class="grade-num" data-toggle="collapse" data-parent="#accordion" href="#my-agencies-{{ $job->id }}" <?php if ($newagenciescount > 0): ?>
+                      style="border-color: #479;" 
+                  <?php endif ?>>                                    
+                      <span class="btn btn-default btn-sm button-8px" data-toggle="tooltip" data-placement="right" title="Agency Recruiters"><i class="fa fa-building"></i> <!-- Change on Dashboard “View Candidates” and “View Agencies” to “Candidates” and “Agency Recruiters” and Make the popup message appear when you scroll over any part of the section icons for "Candidates" and "Agency Recruiters" -->
+                      <?php if ($newagenciescount == 0){
+                      }else{ ?>
+                        <span class="label label-success"><?php echo $newagenciescount ?></span> 
+                     <?php } ?>
+                      </span>
+                  </a>
+                  
+                  &nbsp;
+
+                  <div class="pull-right" >
+                  <a href="{{ base_url('jobs/view_detail/'.$job->id) }}" style="color: #2e749c;" data-content_id="popover-{{ $job->id }}" rel="popover" data-html="true" data-placement="right">
+                      {{ $job->title }}
+                      
+                     @if($userType != 'employer')
+                      <br><small>{{ $job->client_name }}</small>
+                      @endif
+                  </a>
+                  </div>
+              </h4>
+
+              <div class="pull-right box-tools">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                      <i class="fa fa-ellipsis-h fa-2x"></i>
+                  </a>
+
+                  <ul class="dropdown-menu" style="min-width: 160px">
+                      <li>
+                          <!-- Inner Menu: contains the notifications -->
+                          <ul class="menu" style="margin: 0px;padding: 0px;list-style: none;">
+                                  
+                                  <?php
+                                    $accepted_agencies_count =  Accepted_job::where("job_id",$job->id)->where("estatus",1)->count(); 
+
+                                    if($accepted_agencies_count>0)
+                                    {
+                                  ?>
+
+                                  <li style="padding: 10px;">
+                                     <a href="#" data-toggle="modal" data-target="#group_call_form{{$job->id}}" rel='tooltip' data-toggle="tooltip" title="Schedule Group Call"  style="margin-right: 5px;">Schedule Group Call</a>
+                                  </li>
+
+                                  <?php
+                                    }
+                                  ?>
+
+                                  <li style="padding: 10px;">
+                                     <a href="#" data-toggle="modal" data-target="#group_messege_form{{$job->id}}" rel='tooltip' data-toggle="tooltip" title="Send Group Message"  style="margin-right: 5px;">Group Message</a>
+                                  </li>
+                                  <?php
+                                      $today_dt = time();
+                                      $job_created_dt = strtotime($job->created_at);
+                                      $datediff = $today_dt - $job_created_dt;
+                                      $diffToChk = ($datediff / (60 * 60 * 24));
+                                      
+                                      if($job->add_agency == 0 && $diffToChk>=10)
+                                      {
+                                  ?>
+                                  <li style="padding: 10px;"><!-- start notification -->
+                                      <a href="{{ base_url('jobs/add_agencies/'.$job->id) }}" data-toggle="tooltip" title="Rebroadcast Job">Rebroadcast Job</a>
+                                  </li>
+                                  <?php
+                                      }
+                                  ?>
+                                  <li style="padding: 10px;"><!-- start notification -->
+                                      <a href="{{ base_url('jobs/close_job/'.$job->id) }}" onclick="return confirmclosed()" data-toggle="tooltip" title="Close Job" style="margin-right: 5px;">Close Job</a>
+                                  </li>
+							  	  <li style="padding: 10px;"><!-- start notification -->
+                                      <a href="#addPreferredDash-{{$job->id}}" data-toggle="modal" rel="tooltip" title="Add Preferred Agency" style="margin-right: 5px;">Add Preferred Agency</a>
+                                  </li>
+                                 <!-- end notification -->
+                          </ul>
+                      </li>
+                  </ul>
+
+                  @if($newCandidatesCount = $job->candidates()->where(['client_accepted'=>0])->count())
+
+                  @endif
+                  
+              </div>
+          </div>
+          <div class="modal fade" tabindex="-1" role="dialog" id="addPreferredDash-{{$job->id}}">
+								  <div class="modal-dialog">
+									  <div class="modal-content">
+										  <div class="modal-header">
+											  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+												  <span aria-hidden="true">×</span></button>
+											  <h4 class="modal-title">Add Preferred Agency</h4>
+										  </div>
+										  <div class="modal-body">
+										    <form action="{{ base_url('jobs/add_preferred_agencies/'.$job->id.'/index') }}" method="post" id="addPreferredForm">
+										<?php
+												  	$userId = get_user('id');
+													$jobIndustry = $job->industry_id;
+												    $excludeList = array_merge(array( "0" => $userId ),Accepted_job::where("job_id", $job->id)->lists('user_id'));
+													$userPrefAgencies =  User::leftJoin('industry_user', function($ljoin){
+														$ljoin->on('users.id', '=', 'industry_user.user_id');
+													})->join('preferred_agencies', function($ljoin){
+														$ljoin->on('users.id', '=', 'preferred_agencies.agency_id');
+													})->where('preferred_agencies.user_id', $userId)->where('users.type', 'agency')->where("industry_id", $jobIndustry)->whereNotIn('preferred_agencies.agency_id',$excludeList)->get()->toArray();
+													if(!empty($userPrefAgencies)){
+														?>
+														<h4>Select a Preferred Agency:</h4><br><select name="PreferredIdList" style="width: 97%; height: 34px; padding: 6px 12px;font-size: 14px;line-height: 1.42857143;margin-left: 6px;">
+											  			<option value="non">Select an Agency</option>
+														<?php
+														foreach ($userPrefAgencies as $prefVal) {
+															
+														?>
+															<option value="<?php echo($prefVal['id']);?>"><?php echo($prefVal['first_name'] . " " . $prefVal['last_name']);?></option>
+														<?php
+														}
+														?>
+														</select>
+														<br><br>
+														</form>
+										  </div>
+										  <div class="modal-footer">
+											  <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+											  <button type="submit" class="btn btn-primary" data-form="#addPreferredForm">Add</button>
+										  </div>
+														<?php
+													}
+												  else
+												  {
+												  ?>  
+												  <p>You can only add agency recruiters that are on your Preferred list. Your Preferred list is empty.</p>
+												  </form>
+										  </div>
+										  <div class="modal-footer" style="text-align: center;" >
+											  <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+										  </div>
+												  <?php
+												  }
+											  ?>
+											  
+											  
+									  </div>
+									  <!-- /.modal-content -->
+								  </div>
+								  <!-- /.modal-dialog -->
+							  </div>
+<?php
+$agn_count = Accepted_job::where("job_id",$job->id)->whereBetween('estatus',[-1, 0])->count();
+$candi_count = $job->candidates()->where(['client_accepted'=>0])->count();
+
+if ($agn_count>0 && $candi_count>0)
+{
+$agn_tst = Accepted_job::where("job_id",$job->id)->whereBetween('estatus',[-1, 0])->orderBy('created_at','desc')->first()->created_at;
+$candi_tst = $job->candidates()->where(['client_accepted'=>0])->orderBy('updated_at','desc')->first()->updated_at;
+$candi_dt=new DateTime($candi_tst);
+$agn_dt= new DateTime($agn_tst);
+
+if($candi_dt>$agn_dt)
+{$agn_expand=false;$candi_expand=true;}
+else
+{$agn_expand=true;$candi_expand=false;}
+  }
+  elseif($agn_count>0 && $candi_count==0)
+      {$agn_expand=true;$candi_expand=false;} 
+  elseif($agn_count==0 && $candi_count>0)
+      {$agn_expand=false;$candi_expand=true;}
+  else
+      {
+if ($candi_expand)
+{
+$agn_expand=false;
+}
+else
+{
+$agn_expand=false;$candi_expand=false;
+}
+}
+?>
+
+<?php //agency expander ?>
+          
+          @if($agn_expand)
+          <div id="my-agencies-{{ $job->id }}" class="panel-collapse collapse in" aria-expanded="true" style="">
+          @else
+          <div id="my-agencies-{{ $job->id }}" class="panel-collapse collapse" aria-expanded="true" style="">
+          @endif
+              <?php $agencieslist = Accepted_job::where('job_id','=',$job->id)->get();?>
+              
+              <div class="box-body">
+                  @if($agenciesCount = $agencieslist->count())
+                      <ul class="nav nav-pills nav-stacked">
+                          @foreach($agencieslist as $agencies)
+                          <?php $checkstatus = Accepted_job::where('user_id','=',$agencies->user_id)->where('job_id','=',$job->id)->first(); ?>
+
+                          @if($checkstatus->estatus != 2 && $checkstatus->estatus != 3)
+                          <?php $agencyname = User_profile::where('user_id','=',$agencies->user_id)->first();?>
+                              <li>
+                                  @if($checkstatus->estatus == 0 || $checkstatus->estatus == -1)
+                                  <div class="pull-right" style="margin-top:15px;">
+                                    <a href="{{ base_url('jobs/update_job_response/accepted/'.$agencies->user_id.'/'.$job->id.'') }}" class="btn btn-sm btn-success ajax" data-success="update_job_rsvp" data-loading-text="<i class='fa fa-spin'></i>" data-toggle="tooltip" title="Approve Agency"><i class="fa fa-thumbs-up"></i></a>
+                                    <a href="{{ base_url('jobs/update_job_response/rejected/'.$agencies->user_id.'/'.$job->id.'') }}" class="btn btn-sm btn-danger ajax" data-success="update_job_rsvp" data-loading-text="<i class='fa fa-spin'></i>" data-toggle="tooltip" title="Decline Agency"><i class="fa fa-thumbs-down"></i></a>
+                                  </div>
+                                  @elseif($checkstatus->estatus == 1 || $checkstatus->estatus == -2)
+                                  <div class="pull-right" style="margin-top:15px;">
+                                      <label class="label margin-r-5 label-success">
+                                          Approved
+                                      </label>
+                                  </div>
+                                  <?php /*?>@elseif($checkstatus->estatus == -2)
+                                  <div class="pull-right" style="margin-top:10px;">
+                                      <label class="label margin-r-5 label-danger">
+                                          Cancled by User
+                                      </label>
+                                  </div>
+                                  <div class="pull-right" style="margin-top:10px;">
+                                      <label class="label margin-r-5 label-success">
+                                          <?php echo $checkstatus->estatus;?>
+                                      </label>
+                                  </div><?php */?>
+                                  @endif
+                                  
+                                  <?php
+
+                                  //$user =  User::leftJoin('user_profiles', function($ljoin){$ljoin->on('users.id', '=', 'user_profiles.user_id');})->where('users.id', '=',$agencies->user_id)->first();
+                                  $user  = User::with('user_profile','favourite_agencies')->where('users.id', '=',$agencies->user_id)->first();
+                                  ?>
+
+
+
+                                   <div id="popover__{{ $user->id }}" class="hide" style="height:45%;border:1px solid red;">
+                                    @include('agency._user_details',['popover' => true])
+                                    </div>
+
+                                  <a href="{{ base_url('agency/detail/'.$agencies->user_id) }}" style="width:80%;" data-content_id="popover__{{ $agencies->user_id }}" rel="popover" data-html="true"  data-placement="right" data-parent="#accordion" href="" >
+
+                                      @if($profileImg = $agencies->user->profile_pic)
+                                          <img class="contacts-list-img" alt="User Image" src="{{ base_url('public/uploads/'.$profileImg) }}">
+                                      @else
+                                          <img class="contacts-list-img" alt="User Image" src="{{ base_url('public/img/default_profile_pic.jpg') }}">
+                                      @endif
+
+                                      <div class="contacts-list-info">
+                                          <span style="color:#444"><strong>{{ $agencies->user->first_name }} {{$agencies->user->last_name}}</strong></span><br>
+                                          <small class="text-muted">{{ $agencyname->company_name }} </small>
+                                      </div>
+                                  </a>      
+                              </li>
+      @endif
+                          @endforeach
+                      </ul>
+                  @else
+                      <small class="pull-right text-muted">(No agencies have accepted this job yet)</small>
+                  @endif
+              </div>
+          </div>
+          
+<?php //candidate expander  ?>
+          @if($candi_expand)
+           <div id="my-job-{{ $job->id }}" class="panel-collapse collapse in" aria-expanded="true" >
+          @else
+          <div id="my-job-{{ $job->id }}" class="panel-collapse collapse">
+<?php /*?><?php */?>
+          @endif
+        <?php
+		$candidates = $job->candidates;
+		?>
+<div class="box-body {{ ($candidatesCount = $candidates->count()) ? 'no-padding' : '' }}">
+		@if($candidates->count())
+		<?php
+			if ($job->candidates()->where('client_accepted','=',0)->count()>0)
+			{
+            $test_candidate = $job->candidates()->orderBy('updated_at','desc')->first();
+            if($test_candidate->client_accepted)
+            {
+              $hired_tab="";
+              $accepted_tab="active";
+              $pending_tab="";
+              $rejected_tab="";
+
+            }
+            else
+            {
+              $hired_tab="";
+              $accepted_tab="";
+              $pending_tab="active";
+              $rejected_tab="";
+            }
+      }
+			else
+			{
+				$test_candidate = $job->candidates()->orderBy('updated_at','desc')->first();
+				if($test_candidate->hired)
+				{
+					$hired_tab="active";
+					$accepted_tab="";
+					$pending_tab="";
+					$rejected_tab="";
+
+				}
+				elseif($test_candidate->client_accepted)
+				{
+					$hired_tab="";
+					$accepted_tab="active";
+					$pending_tab="";
+					$rejected_tab="";
+				}
+				elseif($test_candidate->client_accepted == -1)
+				{
+					$hired_tab="";
+					$accepted_tab="";
+					$pending_tab="";
+					$rejected_tab="active";
+
+				}					
+
+			}
+
+		?>
+           
+		<div class="nav-tabs-custom equal-tab-size-10">
+				<ul class="nav nav-tabs ">
+					<li class="{{$pending_tab}}"><a class="btn btn-default btn-sm grade-num" id="pending-tab_link-{{$job->id}}" href="#pending-tab-{{$job->id}}" data-toggle="tab"><i class="fa fa-exclamation-circle text-warning fa-lg" data-toggle="tooltip" title="Approval Pending"></i>
+					<span id="pending-tab_span-{{$job->id}}" class="label label-warning"></span>
+	<!--
+					@if($job->candidates_pending>0)
+					<span id="pending-tab_span-{{$job->id}}" class="label label-warning">{{$job->candidates_pending}}</span>
+					@endif
+	-->
+					</a>
+					</li>
+					<li class="{{$accepted_tab}}"><a class="btn btn-default btn-sm grade-num" id="accepted-tab_link-{{$job->id}}" href="#accepted-tab-{{$job->id}}" data-toggle="tab"><i class="fa fa-thumbs-up text-success fa-lg" data-toggle="tooltip" title="Accepted"></i>
+					<span id="accepted-tab_span-{{$job->id}}" class="label label-success"></span>
+	<!--
+					@if($job->candidates_accepted>0)
+					<span id="accepted-tab_span-{{$job->id}}" class="label label-success">{{$job->candidates_accepted}}</span>
+					@endif
+	-->
+					</a></li>
+					<li class="{{$hired_tab}}"><a class="btn btn-default btn-sm grade-num" id="hired-tab_link-{{$job->id}}" href="#hired-tab-{{$job->id}}" data-toggle="tab"><i class="fa fa-handshake-o  text-success fa-lg" data-toggle="tooltip" title="Hired"></i>
+	<!--
+					@if($job->candidates_hired>0)
+					<span id="hired-tab_span-{{$job->id}}" class="label label-primary">{{$job->candidates_hired}}</span>
+					@endif
+	-->
+					</a></li>
+					<li class="{{$rejected_tab}}"><a class="btn btn-default btn-sm grade-num" id="rejected-tab_link-{{$job->id}}" href="#rejected-tab-{{$job->id}}" data-toggle="tab"><i class="fa fa-thumbs-down text-danger fa-lg" data-toggle="tooltip" title="Rejected"></i>
+	<!--
+					@if($job->candidates_rejected>0)
+					<span id="rejected-tab_span-{{$job->id}}" class="label label-danger">{{$job->candidates_rejected}}</span>
+					@endif
+	-->
+					</a></li>
+				</ul>
+<!--
+			<script>
+				$('#pending-tab_link-{{$job->id}}').on('click',function () {
+				$.ajax({
+					url : '{{ base_url('jobs/clear_candidate_actions')}}' +'/{{$job->id}}/candidates_pending',
+					method : 'post',
+					dataType : 'json',
+					success : function (result) {
+						$('#pending-tab_span-{{$job->id}}').hide(1000);
+					}
+				});
+				});
+				
+				$('#accepted-tab_link-{{$job->id}}').on('click',function () {
+            	$.ajax({
+					url : '{{ base_url('jobs/clear_candidate_actions')}}' +'/{{$job->id}}/candidates_accepted',
+					method : 'post',
+					dataType : 'json',
+					success : function (result) {
+						$('#accepted-tab_span-{{$job->id}}').hide(1000);
+					}
+				});
+				});
+				
+				$('#hired-tab_link-{{$job->id}}').on('click',function () {
+            	$.ajax({
+					url : '{{ base_url('jobs/clear_candidate_actions')}}' +'/{{$job->id}}/candidates_hired',
+					method : 'post',
+					dataType : 'json',
+					success : function (result) {
+						$('#hired-tab_span-{{$job->id}}').hide(1000);
+					}
+				});
+				});
+				
+				$('#rejected-tab_link-{{$job->id}}').on('click',function () {
+            	$.ajax({
+					url : '{{ base_url('jobs/clear_candidate_actions')}}' +'/{{$job->id}}/candidates_rejected',
+					method : 'post',
+					dataType : 'json',
+					success : function (result) {
+						$('#rejected-tab_span-{{$job->id}}').hide(1000);
+					}
+				});
+				});
+			</script>
+-->
+		  <?php $empty_check=true; 
+				$pundingCount = 0;
+				$confirmCount = 0;
+				?>
+				<div class="tab-content">
+					<div class="{{$pending_tab}} tab-pane" id="pending-tab-{{$job->id}}">
+					<ul class="nav nav-pills nav-stacked">
+						@foreach($job->candidates()->where('client_accepted','!=',-1)->orderBy('created_at', 'desc')->get() as $candidate)
+							@if($candidate->hired)
+							@elseif($job->closed)
+							@elseif($candidate->client_accepted)
+							@else
+							<?php $empty_check=false; $pundingCount++; ?>
+								<li>
+									<div class="pull-right" style="margin-top:10px;">
+									<a href="{{ base_url('jobs/candidate_rsvp/'.$candidate->id.'/accept') }}" class="btn btn-sm btn-success ajax" data-success="update_candidate_rsvp" data-loading-text="<i class='fa fa-spin'></i>" data-toggle="tooltip" title="Accept Candidate"><i class="fa fa-thumbs-up"></i></a>
+									<a href="#" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#reject-reason-options-popup-{{$candidate->id}}" itle="Decline Agency" data-backdrop="static" data-keyboard="false" ><i class="fa fa-thumbs-down"></i></a></div>
+									<a href="{{ base_url('jobs/candidate_detail/'.$job->id.'/'.$candidate->id) }}" style="width: 75%;"  rel="popover" data-content_id="popover-user-{{ $candidate->id }}" data-original-title title><strong>{{$candidate->name}}</strong></a>
+								</li>
+								<!--  Model Pop-Up For Reject Reason -->
+									<div class="modal fade" tabindex="-1" role="dialog" id="reject-reason-options-popup-{{$candidate->id}}">
+									  <div class="modal-dialog">
+										<div class="modal-content">
+										  <div class="modal-header">
+											  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+												  <span aria-hidden="true">×</span></button>
+											  <h4 class="modal-title">Select Reject Reason</h4>
+										  </div>
+										  <form action="{{ base_url('jobs/candidate_rsvp/'.$candidate->id.'/reject') }}" method="post" id="requestPaymentForm">
+											<div class="modal-body">
+											  <div class="row">
+												<div class="col-xs-12">
+												 <input type="hidden" name="reject_return_path" value="item" />
+												  <select class="form-control" name="reject_reason" required onchange="getothersval(this);">
+													<option value="">Select reject reason</option>
+													@foreach ($reject_reasons as $reasons) 
+													  <option value="{{ $reasons['reject_option'] }}">{{ $reasons['reject_option'] }}</option>
+													@endforeach
+													<option value="other">Other</option>
+												  </select>
+												  <span id="other_input_field"></span>
+												</div>
+											  </div>
+											</div>
+											<div class="modal-footer">
+												<button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+												<input type="submit" class="btn btn-primary" value="Submit"> 
+											</div>
+										  </form>
+										</div>                                             
+									  </div>
+									</div>
+									<!-- End Model Pop-Up For Reject Reason -->
+
+									<!--  Model Pop-Up For Candidate Details -->
+									<div id="popover-user-{{ $candidate->id }}" class="hide">
+									  @include('jobs._candidate_detail_for_dsh', ['popover' => true, 'hasHireDetails'=> $candidate->hire_details()->where('type','=','Request Payment')->where('hire_cancelled','!=','1')->count()])
+								  </div>
+									<!-- End Model Pop-Up For Candidate Details -->
+							@endif
+						@endforeach	
+						<?php if($empty_check) { ?>
+						<li>There are no candidates to display.</li>
+						<?php } else { $empty_check=true; }?>
+					</ul>
+					</div>
+					<div class="{{$accepted_tab}} tab-pane" id="accepted-tab-{{$job->id}}">
+					<ul class="nav nav-pills nav-stacked">
+						@foreach($job->candidates()->where('client_accepted','!=',-1)->orderBy('created_at', 'desc')->get() as $candidate)
+						<?php  $candidate = Candidate::with('hire_details')->find($candidate->id); ?>
+							@if($candidate->hired)
+							@elseif($job->closed)
+							@elseif($candidate->hire_details()->where('hire_cancelled','!=','1')->count() == 1)
+							<?php $empty_check=false; $confirmCount++; ?>
+							  <li>
+								<div class="pull-right" style="margin-top:10px;">
+									<a href="#hireCandidateDash-{{$candidate->id}}" class="pull-right hired-candidate" data-success="confirm_hire_rsvp" data-toggle="modal" rel="tooltip" title="Confirm Hire Details"><i class="fa fa-handshake-o fa-lg pull-right" style="color: #337ab7;margin-right: -10px;"></i></a>
+								</div>
+									<a href="{{ base_url('jobs/candidate_detail/'.$job->id.'/'.$candidate->id) }}" style="width: 75%;" rel="popover" data-content_id="popover-user-{{ $candidate->id }}" data-original-title title><strong>{{$candidate->name}}</strong></a>
+							  <li>
+							  <div class="modal fade" tabindex="-1" role="dialog" id="hireCandidateDash-{{$candidate->id}}" style="font-size: 14px;">
+								  <div class="modal-dialog">
+									  <div class="modal-content">
+										  <div class="modal-header">
+											  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+												  <span aria-hidden="true">×</span></button>
+											  <h4 class="modal-title">Hire Candidate</h4>
+										  </div>
+										  <div class="modal-body">
+											  <form action="{{ base_url('jobs/hire_candidates/'.$job->id.'/'.$candidate->id.'/dash') }}" method="post" id="requestPaymentForm">
+												  @if(isset($candidate->hire_details) && $candidate->hire_details->count())
+													  @foreach($candidate->hire_details as $hire_detail)
+														  <h5>Candidate Reported Hired by: {{ $hire_detail->added_by()->first()->first_name.' '.$hire_detail->added_by()->first()->last_name}}</h5>
+														  <dl class="pull-right">
+															  <dt><i class="fa fa-dollar"></i> Base Salary</dt>
+															  <dd>{{ $hire_detail->base_salary }}</dd>
+														  </dl>
+														  <dl>
+															  <dt><i class="fa fa-calendar"></i> Start Date</dt>
+															  <dd>{{ date('d M, Y', strtotime($hire_detail->start_date)) }}</dd>
+														  </dl>
+														  @if($hire_detail->additional_info != '')
+															<dl>
+																<dt><i class="fa fa-info-circle"></i> Additional Info</dt>
+																<dd>{{ $hire_detail->additional_info }}</dd>
+															</dl>
+														  @endif
+														  <hr>
+													  @endforeach
+													  <p>Confirm or modify the start date or salary. To confirm the information, enter the same details below. If the new hire information has changed or is incorrect, enter the corrected details.</p>
+												  @endif
+
+												  <ul>
+													  @include('jobs._hired_candidates', ['hired_candidate' => $candidate])
+												  </ul>
+											  </form>
+										  </div>
+										  <div class="modal-footer">
+											  <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+											  <button type="submit" class="btn btn-primary" data-form="#requestPaymentForm">Submit</button>
+										  </div>
+									  </div>
+									  <!-- /.modal-content -->
+								  </div>
+								  <!-- /.modal-dialog -->
+							  </div>
+							  <!--  Model Pop-Up For Candidate Details -->
+							  <div id="popover-user-{{ $candidate->id }}" class="hide">
+									  @include('jobs._candidate_detail_for_dsh', ['popover' => true, 'hasHireDetails'=> $candidate->hire_details()->where('type','=','Request Payment')->where('hire_cancelled','!=','1')->count()])
+									</div>
+									<!-- End Model Pop-Up For Candidate Details -->
+							@elseif($candidate->client_accepted)
+								@if($candidate->client_accepted == 1)
+								<?php $empty_check=false; ?>
+									<li>
+										
+										<a href="{{ base_url('jobs/candidate_detail/'.$job->id.'/'.$candidate->id) }}" style="width: 75%;" rel="popover" data-content_id="popover-user-{{ $candidate->id }}" data-original-title title><strong>{{$candidate->name}}</strong></a>	
+									</li>
+									<!--  Model Pop-Up For Candidate Details -->
+									<div id="popover-user-{{ $candidate->id }}" class="hide">
+									  @include('jobs._candidate_detail_for_dsh', ['popover' => true, 'hasHireDetails'=> $candidate->hire_details()->where('type','=','Request Payment')->where('hire_cancelled','!=','1')->count()])
+									</div>
+									<!-- End Model Pop-Up For Candidate Details -->
+								@endif
+							@endif
+						@endforeach	
+						<?php if($empty_check) { ?>
+						<li>There are no candidates to display.</li>
+						<?php } else { $empty_check=true; }?>
+					</ul>
+					</div>
+					<div class="{{$hired_tab}} tab-pane" id="hired-tab-{{$job->id}}">
+					<ul class="nav nav-pills nav-stacked">
+						@foreach($job->candidates()->where('client_accepted','!=',-1)->orderBy('created_at', 'desc')->get() as $candidate)
+						   @if($candidate->hired)
+						   <?php $empty_check=false; ?>
+								<li>
+<!--																<div class="pull-right" style="margin-top:10px;"><label class="label margin-r-5 label-success">Hired</label></div>-->
+									<a href="{{ base_url('jobs/candidate_detail/'.$job->id.'/'.$candidate->id) }}" style="width: 100%;" rel="popover" data-content_id="popover-user-{{ $candidate->id }}" data-original-title title><strong>{{ $candidate->name}}</strong></a>
+								</li>
+									<!--  Model Pop-Up For Candidate Details -->
+									<div id="popover-user-{{ $candidate->id }}" class="hide">
+									  @include('jobs._candidate_detail_for_dsh', ['popover' => true, 'hasHireDetails'=> $candidate->hire_details()->where('type','=','Request Payment')->where('hire_cancelled','!=','1')->count()])
+									</div>
+									<!-- End Model Pop-Up For Candidate Details -->
+
+							@endif
+						@endforeach
+						<?php if($empty_check) { ?>
+						<li>There are no candidates to display.</li>
+						<?php } else { $empty_check=true; }?>
+					</ul>
+					</div>
+					<div class="{{$rejected_tab}} tab-pane" id="rejected-tab-{{$job->id}}">
+					<ul class="nav nav-pills nav-stacked">
+						@foreach($job->candidates()->orderBy('created_at', 'desc')->get() as $candidate)
+							@if($candidate->hired)
+							@elseif($job->closed)
+							@elseif($candidate->client_accepted)
+								@if($candidate->client_accepted == -1)
+								<?php $empty_check=false; ?>
+									<li>
+<!--																	<div class="pull-right" style="margin-top:10px;"><label class="label margin-r-5 label-danger">Rejected</label></div>-->
+										<a href="{{ base_url('jobs/candidate_detail/'.$job->id.'/'.$candidate->id) }}" style="width: 100%;" rel="popover" data-content_id="popover-user-{{ $candidate->id }}" data-original-title title><strong>{{ $candidate->name}}</strong></a>
+									</li>
+									<!--  Model Pop-Up For Candidate Details -->
+									<div id="popover-user-{{ $candidate->id }}" class="hide">
+									  @include('jobs._candidate_detail_for_dsh', ['popover' => true, 'hasHireDetails'=> $candidate->hire_details()->where('type','=','Request Payment')->where('hire_cancelled','!=','1')->count()])
+									</div>
+									<!-- End Model Pop-Up For Candidate Details -->
+
+
+								@endif
+							@endif
+						@endforeach
+						<?php if($empty_check) { ?>
+						<li>There are no candidates to display.</li>
+						<?php } else { $empty_check=true; }?>		
+					</ul>
+					</div>
+				</div>
+				<script>
+					if ({{$pundingCount}}>0)
+					{
+						document.getElementById('pending-tab_span-{{$job->id}}').innerHTML = "{{$pundingCount}}";
+					}
+					if ({{$confirmCount}}>0)
+					{
+						document.getElementById('accepted-tab_span-{{$job->id}}').innerHTML = "{{$confirmCount}}";
+					}
+				</script>
+		</div>
+        @else
+            <p class="text-info">No candidates have been submitted to this job.</p>
+        @endif
+</div>
+    </div>
+</div>
+
+@endif
+
+@section('end-script')
+    @parent
+
+    <script src="{{ admin_assets_url('plugins/slimscroll/jquery.slimscroll.min.js') }}"></script>
+
+    <!-- CK Editor -->
+    <script src="{{ admin_assets_url('plugins/ckeditor/ckeditor.js') }}"></script>
+
+    <script type="application/javascript">
+
+        var config = {};
+
+        config.extraPlugins='confighelper';
+
+        $(function () {
+
+          var jobid = "<?php echo $job?>";
+          console.log("jobid");
+          console.log(jobid);
+
+          CKEDITOR.replace('meeting_message-'+jobid ,config);
+
+        });   
+
+        CKEDITOR.on('instanceReady', function () {
+            $.each(CKEDITOR.instances, function (instance) {
+                CKEDITOR.instances[instance].document.on("keyup", CK_jQ);
+                CKEDITOR.instances[instance].document.on("paste", CK_jQ);
+                CKEDITOR.instances[instance].document.on("keypress", CK_jQ);
+                CKEDITOR.instances[instance].document.on("blur", CK_jQ);
+                CKEDITOR.instances[instance].document.on("change", CK_jQ);
+            });
+        });
+
+        function CK_jQ() {
+            for (instance in CKEDITOR.instances) {
+                CKEDITOR.instances[instance].updateElement();
+            }
+        }
+
+        function jobView(val)
+        {
+            if (val=="new000")
+                {
+                    window.location.href="{{ base_url('dashboard') }}";
+                }
+            else
+                {
+                    window.location.href="{{ base_url('dashboard/index/"+val+"') }}";
+                }
+
+        }
+
+        function update_candidate_rsvp(result, element) {
+            element.parent().html(result.msg);
+            setTimeout(function () {
+                window.location.reload();
+            }, 4000); //will call the function after 2 secs.
+            
+        }
+
+        function update_candidate_rsvp2(result, element) {
+            element.parent().html(result.msg);
+            setTimeout(function () {
+                window.location.reload();
+            }, 4000); //will call the function after 2 secs.
+            
+        }
+        
+        function update_job_rsvp(result, element) {
+            element.parent().html(result.msg);
+            setTimeout(function () {
+                window.location.reload();
+            }, 4000); //will call the function after 2 secs.
+            
+        }
+
+        function confirm_hire_rsvp(result, element) {
+            element.parent().html(result.msg);
+            setTimeout(function () {
+                window.location.reload();
+            }, 4000); //will call the function after 2 secs.
+            
+        }
+
+        function add_agencies_rsvp(result, element) {
+            element.parent().html(result.msg);
+            setTimeout(function () {
+                window.location.reload();
+            }, 4000); //will call the function after 2 secs.
+            
+        }
+
+        function confirmclosed()
+        {
+            var msg = '<?php echo $msgvalue; ?>';
+            var r = confirm(msg);
+            if(r == false)
+            {
+                return false;
+            }
+        }
+
+        // hide rejected messages after 3 secs
+        $("#rejected_message").show().delay(5000).fadeOut();
+        
+        function getothersval(option) {
+          if(option.value=='other')
+          {
+            $('#other_input_field').empty();
+            $('#other_input_field').append('<br><input type="text" name="other_text" class="form-control" placeholder="Please Enter Text For Other" required="required">');
+          } else {
+            $('#other_input_field').empty();
+          }
+        }
+
+        $('.datepicker').datepicker();
+
+        <?php 
+          $job_id = $job->id;
+        ?>
+
+        var jobid = "<?php echo $job_id ?>";
+
+        $('#meeting_start_date-'+jobid).val(getCurrentDate());
+
+        $('#meeting_end_date-'+jobid).val(getCurrentDate());
+
+
+        $('#meeting_start_date-'+jobid).blur(function () {
+
+          var jobid = this.id.substring(19);
+
+          var start_time = $('#meeting_start_time-'+jobid).val();
+
+          if(start_time == "23:30")
+          {
+              var start_date = new Date($('#meeting_start_date-'+jobid).val());
+              var end_date = new Date(start_date);
+              end_date.setDate(start_date.getDate() + 1);
+
+              var dd = end_date.getDate();
+              var mm = end_date.getMonth() + 1; //January is 0!
+              var yyyy = end_date.getFullYear();
+
+              if (dd < 10) {
+                  dd = '0' + dd
+              }
+
+              if (mm < 10) {
+                  mm = '0' + mm
+              }
+
+              end_date_str = mm + '/' + dd + '/' + yyyy;
+
+              $('#meeting_end_date-'+jobid).val(end_date_str);
+              $('#meeting_end_time-'+jobid).val("00:00");
+          }
+          else
+          {
+            $('#meeting_end_date-'+jobid).val($('#meeting_start_date-'+jobid).val());
+          }         
+            
+        });
+
+        $('#meeting_start_time-'+jobid).change(function () {
+
+          var jobid = this.id.substring(19);
+          
+          var start_time = $('#meeting_start_time-'+jobid).val();
+
+          var hour_value = start_time.substring(0,2);
+          var min_value = start_time.substring(3);
+          var end_time = "00:00";
+
+          if(min_value == '00')
+          {
+              end_time = hour_value + ':' + '30';
+          }
+          else
+          {
+            if(parseInt(hour_value) == 23)
+            {
+              end_time ='00:00';
+
+              var start_date = new Date($('#meeting_start_date-'+jobid).val());
+              var end_date = new Date(start_date);
+              end_date.setDate(start_date.getDate() + 1);
+
+              var dd = end_date.getDate();
+              var mm = end_date.getMonth() + 1; //January is 0!
+              var yyyy = end_date.getFullYear();
+
+              if (dd < 10) {
+                  dd = '0' + dd
+              }
+
+              if (mm < 10) {
+                  mm = '0' + mm
+              }
+
+              end_date_str = mm + '/' + dd + '/' + yyyy;
+
+
+              $('#meeting_end_date-'+jobid).val(end_date_str);
+
+            }
+            else
+            {
+              end_time = (parseInt(hour_value) + 1).toString().padStart(2,'0')+ ':' + '00';
+            }
+          }
+
+          $('#meeting_end_time-'+jobid).val(end_time);
+            
+        });
+
+        // Getting the current date formatted
+        function getCurrentDate()
+        {
+            var today = new Date();
+            var dd = today.getDate();
+            var mm = today.getMonth() + 1; //January is 0!
+            var yyyy = today.getFullYear();
+
+            if (dd < 10) {
+                dd = '0' + dd
+            }
+
+            if (mm < 10) {
+                mm = '0' + mm
+            }
+
+            today = mm + '/' + dd + '/' + yyyy;
+            return today;
+        }
+
+    </script>
+
+@endsection
+
+<style type="text/css">
+.with-border>a {
+    position: relative;
+    display: block;
+    padding: 10px 10px 10px 10px;
+}
+  .grade-num .label {
+    position: absolute;
+    top: 4px;   
+    text-align: center;
+    font-size: 9px;
+    padding: 2px 3px;
+    line-height: .9;
+}
+</style>

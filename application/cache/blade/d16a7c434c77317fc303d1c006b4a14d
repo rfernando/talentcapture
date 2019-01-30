@@ -1,0 +1,56 @@
+
+<li class="dropdown messages-menu" <?php if(!isset($subscription['type'])): ?>  <?php endif; ?>>
+    <!-- Menu toggle button -->
+    <!-- <a href="<?php echo base_url('messages'); ?>" <?php /*class="dropdown-toggle"*/ ?> <?php /*data-toggle="dropdown"*/ ?>>
+        <i class="fa fa-envelope-o"></i>
+        <span class="label label-success"><?php echo ($newMessages['unread']) ? $newMessages['unread'] : ''; ?></span>
+    </a> -->
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+        <i class="fa fa-envelope-o"></i>
+        <?php if(count($newMessages['unread_all_messages'])>0): ?>
+            <span class="label label-success"><?php echo ($newMessages['unread_all_messages']) ? count($newMessages['unread_all_messages']) : ''; ?></span>
+        <?php endif; ?>
+    </a>
+    <ul class="dropdown-menu">
+        <li class="header">You have <?php echo count($newMessages['unread_all_messages']); ?> unread messages</li>
+        <li>
+            <!-- inner menu: contains the messages -->
+            <ul class="menu">
+                <?php foreach($newMessages['all_messages'] as $message): ?>
+                    <li><!-- start message -->
+
+                        <?php if($message->type == 0): ?>
+                            <a href="<?php echo base_url('messages/chat/'.$message->from_user_id); ?>" title="<?=($message->viewed=='0') ? 'Unread' :'Read'?>">
+                        <?php else: ?>
+                            <a href="<?php echo base_url('messages/chat/'.$message->from_user_id.'/'.$message->candidate_id .'/'.$message->job_id); ?>" title="<?=($message->viewed=='0') ? 'Unread' :'Read'?>">
+                        <?php endif; ?>
+
+                            <div class="pull-left">
+                                <span style="padding-right: 5px;<?=($message->viewed=='0') ? 'color::#00a65a;' :'color:#97a0b3;'?>" > 
+                                    <i class="fa fa-circle" aria-hidden="true"></i>
+                                </span>
+                                <!-- User Image -->
+                                <?php if($userImage = $message->from_user->profile_pic): ?>
+                                    <img src="<?php echo base_url('public/uploads/'.$userImage); ?>" class="img-circle" alt="User Image">
+                                <?php else: ?>
+                                    <img src="<?php echo base_url('public/img/default_profile_pic.jpg'); ?>" class="img-circle" alt="User Image">
+                                <?php endif; ?>
+                            </div>
+                            <!-- Message title and timestamp -->
+                            <h4 style="<?=($message->viewed=='0') ? 'font-weight:bold;' :''?>">
+                                <?php echo $message->from_user->first_name." ".$message->from_user->last_name; ?>
+
+                                <small><i class="fa fa-clock-o"></i> <?php echo time_since($message->created_at); ?></small>
+                            </h4>
+                            <!-- The message display only 30 character -->
+                            <p><?php echo substr($message->text, 0, 30);; ?></p>
+                        </a>
+                    </li>
+                    <!-- end message -->
+                <?php endforeach; ?>
+            </ul>
+            <!-- /.menu -->
+        </li>
+        <li class="footer"><a href="<?php echo base_url('messages'); ?>">See All Messages</a></li>
+    </ul>
+</li>

@@ -1,0 +1,169 @@
+
+<?php $__env->startSection('page-css'); ?>
+@parent
+
+<link rel="stylesheet" href="<?php echo admin_assets_url('plugins/bootstrap-star-rating/star-rating.min.css'); ?>">
+<?php $__env->stopSection(); ?>
+<div class="box box-widget widget-user " style="height:40%">
+    <!-- Add the bg color to the header using any of the bg-* classes -->
+    <div class="widget-user-header bg-light-blue-active">
+        <h3 class="widget-user-username"> 
+            <?php echo ucfirst($user->first_name)." ".ucfirst($user->last_name); ?>
+
+            <span class="pull-right" style="font-size: 0.5em">
+                <?php 
+                    $uagency = User::with('user_profile')->find($user->id);
+                    $uagency->load('agency_ratings', 'user_profile');
+                    $avgRating = 0;
+                   // dd(DB::getQueryLog());
+					$rating_count=0;
+
+                    //Change reviews to start averaging after one review
+                    if(count($uagency->agency_ratings)>0)
+                    {
+                        foreach ($uagency->agency_ratings as $rating) {
+                            if($rating->pivot->rat_status==1)
+    						{
+    							$avgRating += $rating->pivot->rating;
+    							$rating_count++;
+    						}
+                        }
+                    }
+
+                   if($rating_count>=1){
+
+                        $avgRating = $avgRating/$rating_count;
+                   }else{
+                         $avgRating =0;
+                   }
+                    
+                    
+                 ?>
+                <input type="text" class="star-rating" data-size="xs" value="<?php echo $avgRating; ?>">
+            </span>
+        </h3>
+        <h5 class="widget-user-desc"><?php echo ($user->user_profile->role != 'Other' ) ? $user->user_profile->role.' @ ' : ''; ?> <?php echo $user->user_profile->company_name; ?></h5>
+        <?php if(get_user('type') == 'agency'): ?>
+            <?php /* <?php if($isFavourite): ?> */ ?>
+            <?php if(count($user->favourite_agencies)>0): ?>
+                <a href="<?php echo base_url('agency/remove_favourite/'.$user->id); ?>" class="widget-user-contact-link pull-left"><i class="fa fa-thumbs-o-down"></i> Remove from Preferred</a>
+            <?php else: ?>
+                <a href="<?php echo base_url('agency/add_favourite/'.$user->id); ?>" class="widget-user-contact-link pull-left"><i class="fa fa-thumbs-o-up"></i> Add to Preferred</a>
+            <?php endif; ?>
+        <?php endif; ?>
+        <a href="<?php echo base_url('messages/chat/'.$user->id); ?>"  class="widget-user-contact-link pull-right"><i class="fa fa-envelope"></i> Send a Message</a>
+    </div>
+    <div class="widget-user-image">
+        <img class="img-circle" src="<?php echo ($user->profile_pic) ? base_url('public/uploads/'.$user->profile_pic) :  base_url('public/img/default_profile_pic.jpg'); ?>" alt="User Avatar">
+    </div>
+    
+    <div class="box-footer">
+        <div class="row">
+            <?php /*<div class="col-xs-6">
+                <strong><i class="fa fa-envelope margin-r-5"></i> Email</strong>
+                <p class="text-muted">
+                    <?php echo $user->email; ?>
+
+                </p>
+            </div>*/ ?>
+
+            <div class="col-xs-6">
+                <strong><i class="fa fa-globe margin-r-5"></i> Website</strong>
+                <p class="text-muted ">
+                    <a href="<?php echo $agency->user_profile->company_website_url; ?>" target="_blank">
+                        <?php echo $user->user_profile->company_website_url; ?>
+
+                    </a>
+                </p>
+            </div>
+
+            <div class="col-xs-6"  style="padding-left: 120px">
+                <span>
+                    <a href="<?php echo $agency->user_profile->linkedin_url; ?>" target="_blank"><i class="fa fa-linkedin-square fa-2x margin-r-10"></i></a>
+                </span>
+
+                    <?php if($agency->user_profile->facebook_url != ''): ?>
+                        <span>
+                            <a href="<?php echo $agency->user_profile->facebook_url; ?>" target="_blank"><i class="fa fa-facebook-square fa-2x margin-r-10"></i></a>
+                        </span>
+                    <?php endif; ?>
+
+                    <?php if($agency->user_profile->twitter_url != ''): ?>
+                        <span>
+                            <a href="<?php echo $agency->user_profile->twitter_url; ?>" target="_blank"><i class="fa fa-twitter-square fa-2x margin-r-10"></i></a>
+                        </span>
+                    <?php endif; ?>
+
+            </div>
+        </div>
+        
+        <div class="row">
+        <?php if ( ! (!$user->user_profile->company_address)): ?>
+                <div class="col-xs-12">
+                    <strong><i class="fa fa-map-marker margin-r-5"></i> Location</strong>
+                    <address>
+                        <?php echo $user->user_profile->company_name; ?>
+
+                        , <?php echo $user->user_profile->company_address; ?>
+
+                        , <?php echo $user->user_profile->city; ?>,
+                        <?php echo ($user->user_profile->state()->first() != '') ? $user->user_profile->state()->first()->abbreviation : ''; ?> <?php echo $user->user_profile->zipcode; ?>
+
+                        <br>
+                        <?php /*<abbr title="Phone">P:</abbr>(123) 456-7890*/ ?>
+                    </address>
+                </div>
+            <?php endif; ?>
+        </div>
+        <hr>
+
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#description" data-toggle="tab"><i class="fa fa-info-circle"></i> Description</a></li>
+                <li><a href="#review" data-toggle="tab"><i class="fa fa-star"></i> Reviews</a></li>
+            </ul>
+            <div class="tab-content">
+                <div class="active tab-pane" id="description">
+                    <p><?php echo $user->user_profile->company_desc; ?></p>
+                </div>
+                <!-- /.tab-pane -->
+                <div class="tab-pane" id="review">
+                    <?php if(count($user->agency_ratings)): ?>
+                        <div class="box-footer box-comments">
+                            <?php echo $__env->renderEach('partials._review', $user->agency_ratings, 'ratings'); ?>
+                        </div>
+                    <?php else: ?>
+                        <p>No new reviews.</p>
+                    <?php endif; ?>
+                </div>
+                <!-- /.tab-pane -->
+            </div>
+            <!-- /.tab-content -->
+        </div>
+        <!-- /.row -->
+    </div>
+</div>
+
+<?php $__env->startSection('page-js'); ?>
+@parent
+<!--Bootstrap Star Rating-->
+<script src="<?php echo admin_assets_url('plugins/bootstrap-star-rating/star-rating.min.js'); ?>"></script>
+<?php $__env->stopSection(); ?>
+
+
+<?php $__env->startSection('end-script'); ?>
+    @parent
+
+    <script type="application/javascript">
+        $('document').ready(function(){
+
+            $(".star-rating").rating({
+                "size":"xs",
+                "clearButton" : '',
+                "showCaption" : false,
+                "readonly" : true
+            });
+        });
+
+    </script>
+<?php $__env->stopSection(); ?>

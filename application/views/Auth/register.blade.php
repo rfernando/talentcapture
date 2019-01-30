@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Talent Capture Platform</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <!-- Bootstrap 3.3.6 -->
+    <link rel="stylesheet" href="{{ admin_assets_url('bootstrap/css/bootstrap.min.css') }}">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="{{ admin_assets_url('dist/css/AdminLTE.min.css') }}">
+    <!-- iCheck -->
+    <link rel="stylesheet" href="{{ admin_assets_url('plugins/iCheck/square/blue.css') }}">
+    <link rel="stylesheet" href="{{ admin_assets_url('plugins/bootstrap-multiselect/bootstrap-multiselect.css') }}">
+
+    <link rel="stylesheet" href="{{ admin_assets_url('custom.css') }}">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body class="hold-transition register-page">
+<div class="register-box"  style="margin: 2% auto;">
+    <div class="register-logo">
+        <img alt="TalentCapture" src="{{ base_url('public/img/login_logo.png') }}">
+    </div>
+
+    <div class="register-box-body">
+
+        <div class="social-auth-links text-center">
+            
+            <a href="{{ base_url('Auth/oauth_register') }}" class="btn btn-block btn-social btn-linkedin btn-flat"><i class="fa fa-linkedin"></i> Sign up using
+                LinkedIn</a>
+            {{--<a href="#" class="btn btn-block btn-social btn-google btn-flat"><i class="fa fa-google-plus"></i> Sign up using
+                Google+</a>--}}
+            <p>- OR -</p>
+        </div>
+
+        <p class="login-box-msg">Register a new membership</p>
+
+        <form action="{{ base_url('Auth/register') }}" method="post" class="validateForm">
+            {{ generate_form_fields($registrationFields) }}
+
+            <div class="row">
+                <div class="col-xs-8">
+                    <a href="{{ base_url('login') }}" class="text-center">I already have a membership</a>
+                </div>
+                <!-- /.col -->
+                <div class="col-xs-4">
+                    <button type="submit" class="btn btn-primary btn-block btn-flat">Register</button>
+                </div>
+                <!-- /.col -->
+            </div>
+        </form>
+
+
+
+    </div>
+    <!-- /.form-box -->
+</div>
+<!-- jQuery 2.2.0 -->
+<script src="{{ admin_assets_url('plugins/jQuery/jQuery-2.2.0.min.js') }}"></script>
+<!-- Bootstrap 3.3.6 -->
+<script src="{{ admin_assets_url('bootstrap/js/bootstrap.min.js') }}"></script>
+<!-- iCheck -->
+<script src="{{ admin_assets_url('plugins/iCheck/icheck.min.js') }}"></script>
+
+<script src="{{ admin_assets_url('plugins/jQuery-validation/jquery.validate.min.js') }}"></script>
+
+<script src="{{ admin_assets_url('plugins/bootstrap-multiselect/bootstrap-multiselect.js') }}"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.maskedinput/1.4.1/jquery.maskedinput.min.js"></script>
+
+<script src="{{ base_url('public/js/custom.js') }}"></script>
+
+<script>
+    $(function () {
+
+        var industries = $('#industries');
+        var professions = $('#profession');
+
+            function industryMultiselect(maxSelectableOptions){
+                industries.find("option[value='']").remove();
+                industries.multiselect({
+                    buttonWidth: '100%',
+                    dropRight: true,
+                    dropUp: true, //change
+                    maxHeight: 200,
+                    buttonText: function (options, select){
+                        if (options.length === 0) {
+                            return 'Select Industries';
+                        }else{
+                            return options.length + ' Selected'
+                        }
+                    },
+                    onChange: function(option, checked, select) {
+
+                        var user_type = $("#users-type").val();
+                        var industry_length = $("#industries :selected").length;
+
+                        if(industry_length > 10){
+                            alert("Maximum of 10 Industries allowed.");
+                            var curr_opt = $(option).val();
+                            $('#industries').multiselect('deselect', curr_opt, true);
+                        }
+                    },
+                    onDropdownHide: function(event) {
+                        $.ajax({
+                            url: '{{ base_url('Auth/getProfessionOptions') }}',
+                            method : 'post',
+                            data :  {"industries" : industries.val()},
+                            dataType : 'json',
+                            success: function(result){
+                                //console.log(result); 
+                                professions.multiselect('dataprovider', renderOptions(result));
+                                professions.multiselect('destroy');
+                                professions.multiselect({
+                                    buttonWidth: '100%',
+                                    maxHeight: 200,
+                                    dropRight: true,
+                                    dropUp: true,
+                                    includeSelectAllOption: true,
+                                    selectAllText: 'All',
+                                    buttonText: function (options, select){
+                                        if (options.length === 0) {
+                                            return 'Select Professions';
+                                        }else{
+                                            return options.length + ' Selected'
+                                        }
+                                    },
+                                    onChange: function(option, checked, select) {
+                                        if(option.val() == 0 && checked)
+                                        {
+                                            $('#profession').multiselect('selected', true);
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                    }
+                })
+            }
+
+        var options = {
+            "employer" : ['Human Resources','Hiring Manager','Recruiter','Other'],
+            "agency" : ['Owner','Recruiter','Other']
+        };
+
+        $('input').iCheck({
+            checkboxClass: 'icheckbox_square-blue',
+            radioClass: 'iradio_square-blue',
+            increaseArea: '20%' // optional
+        });
+
+
+    jQuery(function($){
+       $("#users-phone").mask("(999) 999-9999");
+    });
+    
+ 	//$('#company_name_dd').change(function(){
+        //var comp = $(this).val();
+        //$('#user_profiles-company_name').val(comp);
+	$('#user_profiles-company_name').blur(function(){
+
+        var comp = $(this).val();
+        
+    	$.ajax({
+            url: '{{ base_url('Auth/get_any_field_single_row') }}',
+            method : 'post',
+            data :  {"tbl":'User_profile',"col":'company_website_url',"cond_fld":'company_name',"cond_val":comp},
+            dataType : 'json',
+            success: function(result){
+    		$('#user_profiles-company_website_url').val(result);
+            }
+        });
+
+    	$.ajax({
+            url: '{{ base_url('Auth/get_any_field_single_row') }}',
+            method : 'post',
+            data :  {"tbl":'User_profile',"col":'company_desc',"cond_fld":'company_name',"cond_val":comp},
+            dataType : 'json',
+            success: function(result){
+    		$('#user_profiles-company_desc').val(result);
+            }
+        });
+    	$.ajax({
+            url: '{{ base_url('Auth/get_any_field_single_row') }}',
+            method : 'post',
+            data :  {"tbl":'User_profile',"col":'company_address',"cond_fld":'company_name',"cond_val":comp},
+            dataType : 'json',
+            success: function(result){
+    		$('#user_profiles-company_address').val(result);
+            }
+        });
+    	$.ajax({
+            url: '{{ base_url('Auth/get_any_field_single_row') }}',
+            method : 'post',
+            data :  {"tbl":'User_profile',"col":'city',"cond_fld":'company_name',"cond_val":comp},
+            dataType : 'json',
+            success: function(result){
+    		$('#user_profiles-city').val(result);
+            }
+        });
+
+    	$.ajax({
+            url: '{{ base_url('Auth/get_any_field_single_row') }}',
+            method : 'post',
+            data :  {"tbl":'User_profile',"col":'state_id',"cond_fld":'company_name',"cond_val":comp},
+            dataType : 'json',
+            success: function(result){
+    		$('#user_profiles-state_id').val(result);
+            }
+        });
+    	$.ajax({
+            url: '{{ base_url('Auth/get_any_field_single_row') }}',
+            method : 'post',
+            data :  {"tbl":'User_profile',"col":'zipcode',"cond_fld":'company_name',"cond_val":comp},
+            dataType : 'json',
+            success: function(result){
+    		$('#user_profiles-zipcode').val(result);
+            }
+        });
+    	
+    });
+
+
+    $('#users-type').change(function(){
+        var type = $(this).val();
+        var html = '<option value="">Select Role</option>';
+        for(var i in options[type]){
+            html += '<option>'+ options[type][i]+'</option>';
+        }
+        $('#user_profiles-role').html(html);
+
+        if(type == 'employer'){
+            professions.addClass('ignore');
+            industries.multiselect('destroy');
+            industries.prepend('<option value="">Select Industry</option>');
+            industries.parent().removeClass('hide-native-select');
+            industries.prop('multiple', false);
+            professions.parent().hide();
+
+        }else{
+            professions.removeClass('ignore');
+            industries.prop('multiple', 'multiple');
+            industryMultiselect(10);
+            professions.parent().show();
+        }
+    });
+
+    function renderOptions(result){
+        console.log(result);
+        var resultArray = [];
+        for (var key in result) {
+            if(result.hasOwnProperty(key))
+                resultArray.push({label : result[key].text, value : result[key].id });
+        }
+        console.log(resultArray);
+        return resultArray;
+    }
+
+        $('#user_profiles-company_website_url').on('focus', function(){
+            var value = $(this).val();
+            if(value == '' )
+                $(this).val('http://');
+        }).on('blur',function(){
+            var value = $(this).val();
+            if(value != '' && value.indexOf('http://') != 0){
+                $(this).val('http://'+value);
+            }else if(value == 'http://'){
+                $(this).val('');
+            }
+
+
+        });
+
+        professions.multiselect({
+            buttonWidth: '100%',
+            maxHeight: 200,
+            dropRight: true,
+            dropUp: true,
+            buttonText: function (options, select){
+                if (options.length === 0) {
+                    return 'Select Professions';
+                }else{
+                    return options.length + ' Selected'
+                }
+            }
+        });
+
+        industryMultiselect(10);
+
+    });
+</script>
+</body>
+</html>

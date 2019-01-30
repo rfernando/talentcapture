@@ -1,0 +1,107 @@
+<div class="box box-warning dashboard-box" style="border-top-color: #2e749c;">
+    <div class="box-header">
+        <!-- tools box -->
+        <div class="pull-right box-tools">
+
+            <button type="button" class="btn btn-default btn-sm pull-right" data-widget="collapse" data-toggle="tooltip" title="Collapse" style="margin-right: 5px;">
+                <i class="fa fa-minus"></i></button>  <!--  Remove the red X (ability to close) the agency showcase on an employer's Dashboard -->
+
+        </div>
+        <!-- /. tools -->
+
+        <i class=""></i>
+
+        <h3 class="box-title" style="font-weight: 600;font-size: 24px;">Agency Showcase  <a rel="popover" data-toggle="collapse" data-html="true" data-placement="bottom" data-parent="#accordion" data-content_id="popover_sos" ><i class="glyphicon glyphicon-question-sign" ></i></a> <!-- The ? popup for the Agency Showcase needs to be repositioned so the entire message is viewable -->
+        </h3>
+        <div id="popover_sos" class="hide"><?php $agency_showcase = Site_messages::where('type','=','agency_showcase')->first(); 
+        echo $agency_showcase->msg; ?>
+</div>
+
+    </div>
+    <div class="box-body"  style="overflow-y: auto; height: 492px;">
+        <?php if(isset($platinum_users) && count($platinum_users)>0): ?>
+            <ul class="nav nav-pills nav-stacked <?php echo (count($platinum_users) > 5) ? 'slimScroll' : ''; ?>">
+                
+               <?php foreach($platinum_users as $user): ?>
+                    <?php
+                    //Check prefered agency
+                    $show_preffered_agent = TRUE;
+                    $countagent = preferred_agencies::where('agency_id',$user->id)->where('user_id',get_user('id'))->get()->count();
+                    $rejectedagent = rejected_agencies::where('agency_id',$user->id)->where('user_id',get_user('id'))->get()->count();
+                    if($countagent == 1 || $rejectedagent == 1){
+                         $show_preffered_agent = FALSE;
+                    }
+                            
+                    ?>
+                    <?php if($show_preffered_agent): ?>
+                    <li>
+                        <div id="popover_<?php echo $user->id; ?>" class="hide" style="height:45%;border:1px solid red;">
+                            <?php echo $__env->make('agency._platinum_user_details',['popover' => true], array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>
+                        </div>
+                        
+                        <div class="pull-right" style="margin-top: 15px;">
+                          
+                           	<!--change "reject agency" to "Remove from Dashboard." Replace the icons with the thumbs up and thumbs down (in that order from left to right)-->                          	
+                            <a href="<?php echo base_url('agency/update_agent_response/accepted/'.$user->id); ?>" class="btn btn-sm btn-success ajax" data-success="update_agent_rsvp" data-loading-text="<i class='fa fa-spinner fa-spin'></i>" data-toggle="tooltip" data-placement="left" title="Add Agency to Preferred List"><i class="fa fa-thumbs-up"></i></a>
+                            <a href="<?php echo base_url('agency/update_agent_response/rejected/'.$user->id); ?>" class="btn btn-sm btn-danger ajax" data-success="update_agent_rsvp" data-loading-text="<i class='fa fa-spinner fa-spin'></i>" data-toggle="tooltip" data-placement="left" title="Remove from Dashboard"><i class="fa fa-thumbs-down"></i></a>
+                        </div>
+                        
+            			<a href="<?php echo base_url('agency/detail/'.$user->id); ?>" style="width: 75%;" data-content_id="popover_<?php echo $user->id; ?>" rel="popover" data-html="true" data-placement="left" data-parent="#accordion" href="" >
+
+                            <?php if($profileImg = $user->profile_pic): ?>
+                                <img class="contacts-list-img" alt="User Image" src="<?php echo base_url('public/uploads/'.$profileImg); ?>">
+                            <?php else: ?>
+                                <img class="contacts-list-img" alt="User Image" src="<?php echo base_url('public/img/default_profile_pic.jpg'); ?>">
+                            <?php endif; ?>
+
+                            <div class="contacts-list-info">
+                                <span style="color:#2e749c"><strong><?php echo ucfirst($user->first_name); ?> <?php echo $user->last_name; ?></strong></span><br>
+                                <small class="text-muted"><?php echo $user->user_profile->company_name; ?></small>
+                            </div>            
+
+                        </a>
+                    
+                    </li>
+                    <?php endif; ?>
+            
+                <?php endforeach; ?>       
+            <?php else: ?>
+                <p>No agency listed here.</p>
+
+        <?php endif; ?>
+
+    </div>
+    <!-- /.box-body-->
+   <?php /*  <div class="box-body">
+        <div id="rsvp-result-container" style="display: none;"></div>
+            <?php if($platinum_users): ?>
+                <ul class="nav nav-pills nav-stacked ">
+                    <?php foreach($platinum_users as $user): ?>
+                                
+                                <?php endif; ?>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </ul>
+            <?php else: ?>
+                <p>Sorry there are no jobs matching your Preferred Categories at this time. Please check back later.</p>
+            <?php endif; ?>
+        <?php else: ?>
+           
+        <?php endif; ?>
+    </div>
+</div> */ ?>
+
+<?php $__env->startSection('end-script'); ?>
+    @parent
+
+    <script type="application/javascript">
+        function update_agent_rsvp(result, element) {
+            element.parent().html(result.msg);
+            setTimeout(function () {
+                window.location.reload();
+            }, 4000); //will call the function after 2 secs.
+        }
+    </script>
+
+<?php $__env->stopSection(); ?>

@@ -1,0 +1,126 @@
+<div class="box box-{{ ($job->closed) ? 'danger' : 'success' }}">
+    <div class="box-header with-border">
+        <h3 class="box-title">
+            <i class="fa fa-info-circle"></i> Job Detail &nbsp;&nbsp;<small><i class="fa fa-user"></i> {{ $job->user->user_profile()->first()->company_name  }} </small>
+        </h3>
+        @unless(isset($popover))
+            <div class="box-tools">
+                @if($job->closed)
+                    <label class="label label-danger">Job Closed</label>
+                    <span class="text-muted"><i class="fa fa-calendar margin-r-5"></i> {{ date('d M,Y', strtotime($job->updated_at ))}}</span>
+                @else
+                    <span class="text-muted margin-r-5"><i class="fa fa-calendar margin-r-5"></i> {{ date('d M,Y', strtotime($job->updated_at ))}}</span>
+                    <label class="label label-{{ ($job->status) ? 'success' : 'warning' }}">{{ ($job->status) ? 'Active' : 'Awaiting Admin Approval' }}</label>
+                @endif
+            </div>
+        @else
+            <div class="box-tools">
+                <span class="text-muted margin-r-5"><i class="fa fa-calendar margin-r-5"></i> {{ date('d M,Y', strtotime($job->updated_at ))}}</span>
+            </div>
+        @endunless
+    </div>
+    <!-- /.box-header -->
+    <div class="box-body">
+        {{ flash_msg() }}
+        <div class="col-md-{{ isset($popover) ? '12' : '10' }}" id="job-details">
+            <dl class="dl-horizontal">
+
+                <dt>Job Title</dt>
+                <dd>{{ $job->title }}</dd>
+
+                <dt>Industry</dt>
+                <dd>{{ $job->industry()->first()->title }}
+
+                <dt>Profession</dt>
+                <dd>{{ $job->profession()->first()->title }}</dd>
+
+                <dt>Primary Skills Required</dt>
+                <dd>{{ $job->skills}}</dd>
+
+                @unless(isset($popover))
+                    <dt>Location</dt>
+                    <dd>{{ $job->job_location }}</dd>
+                @endunless
+
+                <dt>Resource Type</dt>
+                <dd>{{ $job->position_type }}</dd>
+
+                <dt>Client Name</dt>
+                <dd>{{ ($job->client_name_confidential) ? 'Confidential' : $job->client_name }}</dd>
+
+                <dt>Salary or Hourly rate</dt>
+                <dd>{{ $job->salary }}</dd>
+
+                @if($job->warranty_period)
+
+                    <dt>Warranty Period</dt>
+                    <dd>{{ $job->warranty_period }}</dd>
+                @endif
+
+                @if($job->split_percentage)
+
+                    <dt>Split Percentage</dt>
+                    <dd>{{ $job->split_percentage }}</dd>
+
+                @endif
+
+                <dt>Notes</dt>
+                <dd>{{ $job->note }}</dd>
+            </dl>
+        </div>
+        @if(!isset($popover))
+            <div class="col-md-2 no-padding no-margin text-center" id="job-actions">
+                @if($accepted_by_loggedIn_user)
+                    @if(!$job->closed)
+                        @if(!isset($subscription['type']))
+                            <a class="btn btn-app" href="{{ base_url('searches/add_candidate/'.$job->id) }}" data-toggle="tooltip" title="Add New Candidate" >
+                                <i class="fa fa-user-plus"></i> Candidate
+                            </a>
+                        @endif
+                    @else
+                        <a href="{{ base_url('searches/remove_interest/'.$job->id) }}" type="button" class="btn btn-app" data-toggle="tooltip" onclick="return confirm('All contents pertaining to this Search will be removed. Continue?'); " title="Remove from My Searches" >
+                            <i class="fa fa-trash"></i> Remove
+                        </a>
+                    @endif
+                @else
+                    <a class="btn btn-app" href="{{ base_url('agency/update_job_response/accepted/'.$job->id) }}" data-toggle="tooltip" title="Accept this Job" >
+                        <i class="fa fa-check"></i> Accept
+                    </a>
+                    <a class="btn btn-app" href="{{ base_url('agency/update_job_response/rejected/'.$job->id) }}" data-toggle="tooltip" title="Reject this Job" >
+                        <i class="fa fa-times"></i> Decline
+                    </a>
+                @endif
+
+            </div>
+        @endif
+        <div class="col-md-12">
+            @if(!isset($popover))
+                <dl>
+                    <dt>Job Description <a class="pull-right toggle-display" href="javascript:void(0)">Hide</a></dt>
+                    <dd>{{ $job->description }}</dd>
+                </dl>
+            @else
+                <dl>
+                    <dt>Job Description</dt>
+                    <dd>{{ html_entity_decode($job->description)  }}</dd>
+                    {{--<dd>{{ substr(strip_tags($job->description),0, 1350)}}</dd>--}}
+                </dl>
+            @endif
+        </div>
+    </div>
+
+</div>
+
+<!--- Start Display Active and Inactive SO's List --->
+@section('end-script')
+    @if($job->closed)
+        <script>
+            $('#active').hide();
+        </script>
+    @else
+        <script>
+            $('#closed').hide();
+        </script>
+    @endif
+<!--- End Display Active and Inactive So's List--->
+@endsection

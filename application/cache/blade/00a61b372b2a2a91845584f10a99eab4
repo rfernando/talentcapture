@@ -1,0 +1,42 @@
+<section class="content-header">
+    <h1>
+        Announcements and User Tips
+    </h1>
+</section>
+<br>
+
+<div class="box-body"  style="overflow-y: auto; height: 250px; background-color: #ffffff">
+
+    <?php if($latestBlogs->count()): ?>
+        <div class="box-group" id="accordion">
+            <?php foreach($latestBlogs as $blog): ?>
+                <div class="panel box" style="border: none; box-shadow: none;height: 15px;">
+                    <div class="box-header" >
+                        <h4 class="box-title">
+                            <div class="pull-right" >
+                                <a href="<?php echo base_url('blogs/view_detail/'.$blog->id); ?>" target="_blank">
+                                    <?php echo $blog->blog_title; ?>
+
+                                </a>
+                            </div>
+                        </h4>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+
+        </div>
+    <?php else: ?>
+        <p>There is no blog posts available.</p>
+    <?php endif; ?>  
+    
+</div>
+
+<?php $__env->startSection('end-script'); ?>
+    @parent
+
+    <script type="application/javascript">
+
+        
+
+    </script>
+<?php $__env->stopSection(); ?>

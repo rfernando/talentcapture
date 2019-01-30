@@ -1,0 +1,161 @@
+@extends('template.template')
+
+
+@section('main-content')
+    <section class="content-header">
+        <h1>
+            My TalentGrams
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="{{ base_url('dashboard') }}"><i class="fa fa-dashboard"></i> Home</a></li>
+            <li class="active"><i class="fa fa-search"></i> My Searches</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content" id="main-content">    <!-- For RP-805 to show the popover msg i need to add id  -->
+        <div class="row">
+            <div class="col-md-3">
+                @include('agency._job_listing')
+                @include('agency._candidates')
+            </div>
+
+           
+
+
+            <div class="col-md-9">
+                <div class="box box-success">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"><i class="fa fa-user-plus"></i> Add Candidate </h3>
+                        <div class="box-tools">
+                            <a href="{{ base_url('searches/job_detail/'.$job->id) }}" type="button" class="btn btn-box-tool" data-toggle="tooltip" title="View Job Detail" >
+                                <i class="fa fa-info-circle"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body">
+                        <form action="{{ base_url('searches/save_candidate') }}" method="post" class="form-horizontal validateForm" enctype="multipart/form-data">
+                            <input type="hidden" name="candidates[job_id]" value="{{ $job->id }}">
+                            {{ flash_msg() }}
+                            {{ generate_form_fields($candidateFields, 3) }}
+                            <div class="form-group">
+                                <div class="col-sm-offset-3 col-sm-10">
+                                    <button type="submit" class="btn btn-danger">Submit</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- /.row -->
+    </section>
+@endsection
+
+
+@section('page-js')
+    <script src="{{ admin_assets_url('plugins/slimscroll/jquery.slimscroll.min.js') }}"></script>
+    <!-- CK Editor -->
+    <!-- <script src="https://cdn.ckeditor.com/4.5.7/standard/ckeditor.js"></script>-->
+    <script src="{{ admin_assets_url('plugins/ckeditor/ckeditor.js') }}"></script>
+@endsection
+
+
+@section('end-script')
+    @parent
+    <script type="text/javascript">
+
+        var config = {};
+
+        config.extraPlugins='confighelper';
+
+        $(function () {
+            CKEDITOR.replace('candidates-employment_history',config);
+        });
+
+        CKEDITOR.on('instanceReady', function () {
+            $.each(CKEDITOR.instances, function (instance) {
+                CKEDITOR.instances[instance].document.on("keyup", CK_jQ);
+                CKEDITOR.instances[instance].document.on("paste", CK_jQ);
+                CKEDITOR.instances[instance].document.on("keypress", CK_jQ);
+                CKEDITOR.instances[instance].document.on("blur", CK_jQ);
+                CKEDITOR.instances[instance].document.on("change", CK_jQ);
+            });
+        });
+
+        function CK_jQ() {
+            for (instance in CKEDITOR.instances) {
+                CKEDITOR.instances[instance].updateElement();
+            }
+        }
+
+        $(document).ready(function()
+        {
+
+        });
+
+        $('#candidates-linkedin_url').on('focus', function(){
+            var value = $(this).val();
+            if(value == '' )
+                $(this).val('http://');
+        }).on('blur',function(){
+            var value = $(this).val();
+            if(value != '' && value.indexOf('http://') != 0 && value.indexOf('https://') != 0){
+                $(this).val('http://'+value);
+            }else if(value == 'http://'){
+                $(this).val('');
+            }
+        });
+
+
+        $('#candidates-facebook_url').on('focus', function(){
+            var value = $(this).val();
+            if(value == '' )
+                $(this).val('http://');
+        }).on('blur',function(){
+            var value = $(this).val();
+            if(value != '' && value.indexOf('http://') != 0 && value.indexOf('https://') != 0){
+                $(this).val('http://'+value);
+            }else if(value == 'http://'){
+                $(this).val('');
+            }
+        });
+
+        $('#candidates-twitter_url').on('focus', function(){
+            var value = $(this).val();
+            if(value == '' )
+                $(this).val('http://');
+        }).on('blur',function(){
+            var value = $(this).val();
+            if(value != '' && value.indexOf('http://') != 0 && value.indexOf('https://') != 0){
+                $(this).val('http://'+value);
+            }else if(value == 'http://'){
+                $(this).val('');
+            }
+        });
+
+
+        jQuery(function($){
+           $("#candidates-phone").mask("(999) 999-9999");
+        });
+
+        /* For RP-805 to show the popover msg i need to below javascript */
+        $('[rel="popover"]').popover({
+            trigger: "hover",
+            html:true,
+            container: '#main-content',
+            content: function() {
+                return $('#'+$(this).data('content_id')).html();
+            }
+        });
+ 
+        $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip();   
+        });
+
+
+
+    </script>
+@endsection

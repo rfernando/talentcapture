@@ -1,0 +1,13 @@
+diff a/application/views/dashboard_widgets/_my_jobs.blade.php b/application/views/dashboard_widgets/_my_jobs.blade.php	(rejected hunks)
+@@ -67,7 +67,11 @@
+                                      <!--<small title="New Candidate Alert" class="badge bg-red-gradient">{{ $newCandidatesCount.' New Candidate(s)' }}</small>&nbsp;&nbsp;&nbsp; -->
+                                  @endif
+  
+++<<<<<<< Updated upstream
+ +                                <!--<a href="{{ base_url('jobs/close_job/'.$job->id) }}" onclick="return confirmclosed()" class="btn btn-default btn-sm pull-right" data-toggle="tooltip" title="Close Job" style="margin-right: 5px;"><i class="fa fa-lock"></i></a>-->
+++=======
++                                 <?php /*?><a href="{{ base_url('jobs/close_job/'.$job->id) }}" onclick="return confirmclosed()" class="btn btn-default btn-sm pull-right" data-toggle="tooltip" title="Close Job" style="margin-right: 5px;"><i class="fa fa-lock"></i></a><?php */?>
+++>>>>>>> Stashed changes
+  
+                                  <!--<a href="{{ base_url('jobs/view_detail/'.$job->id) }}" data-toggle="tooltip" title="View Job Details">
+                                      <i class="fa fa-info-circle"></i>

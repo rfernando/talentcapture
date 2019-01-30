@@ -1,0 +1,204 @@
+<?php
+
+/**
+ * common_helper.php
+ *
+ * This File Contains Common helper functions.
+ */
+
+if (!function_exists('p')){
+    function p($data, $die = true){
+        echo '<pre>'; print_r($data);
+        if ($die)
+            die('########');
+    }
+}
+
+if (!function_exists('v')){
+    function v($data, $die = true){
+        echo '<pre>'; var_dump($data);
+        if ($die)
+            die('########');
+    }
+}
+
+if(!function_exists('get_user')){
+    function get_user($field = NULL){
+        $CI =& get_instance();
+        return ($field == NULL) ? $CI->session->userdata() : $CI->session->userdata($field);
+    }
+}
+
+if(!function_exists('get_admin_user')){
+    function get_admin_user($field = NULL){
+        $CI =& get_instance();
+        $adminUser = $CI->session->userdata('admin');
+        return ($field == NULL) ? $adminUser  : $adminUser[$field];
+    }
+}
+
+if(!function_exists('generateRandomString')){
+    function generateRandomString($length = 10) {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+        return $randomString;
+    }
+}
+
+if(!function_exists('upload_file')){
+    function upload_file($fileName, $config = null){
+
+        if($config == null){
+            $config['upload_path']          = APPPATH.'../public/uploads/';
+            $config['allowed_types']        = 'gif|jpg|png|pdf';
+//            $config['file_name']            = time(). ".". pathinfo($file, PATHINFO_EXTENSION);
+            /*$config['max_size']             = 100;
+            $config['max_width']            = 1024;
+            $config['max_height']           = 768;*/
+
+        }
+
+        $CI = &get_instance();
+        $CI->load->library('upload', $config);
+
+        $result['success'] = $CI->upload->do_upload($fileName);
+        $result['upload'] = $CI->upload;
+        return$result;
+    }
+}
+
+
+if(!function_exists('email')){
+    function email($emailData){
+        $mail = new PHPMailer;
+        $mail->isSMTP();
+        $mail->Host = SMTP_HOSTNAME;
+        $mail->SMTPAuth = true;
+        $mail->Username = SMTP_USERNAME;
+        $mail->Password = SMTP_PASSWORD;
+        $mail->SMTPSecure = SMTP_SECURE;
+        $mail->Port = SMTP_PORT;
+        $mail->setFrom($emailData['from']);
+        $mail->addAddress($emailData['to']);
+        if(isset($emailData['bcc']) && $emailData['bcc'] != ""){
+            $mail->addBCC($emailData['bcc']);
+        }
+        $mail->addCC("appdev@perituza.com");
+        $mail->isHTML(true);
+        $mail->Subject = $emailData['subject'];
+        $mail->Body    = $emailData['body'];
+        $mail->AltBody = strip_tags($emailData['body']);
+        $mail->send();
+        return Mail::create($emailData);
+    }
+}
+
+if(!function_exists('email_on_message')){
+    function email_on_message($emailData){
+        $mail = new PHPMailer;
+        $mail->isSMTP();
+        $mail->Host = SMTP_HOSTNAME;
+        $mail->SMTPAuth = true;
+        $mail->Username = SMTP_USERNAME;
+        $mail->Password = SMTP_PASSWORD;
+        $mail->SMTPSecure = SMTP_SECURE;
+        $mail->Port = SMTP_PORT;
+        $mail->setFrom($emailData['from']);
+        $mail->addAddress($emailData['to']);
+        if(isset($emailData['bcc']) && $emailData['bcc'] != ""){
+            $mail->addBCC($emailData['bcc']);
+        }
+        $mail->addCC("appdev@perituza.com");
+        $mail->isHTML(true);
+        $mail->Subject = $emailData['subject'];
+        $mail->Body    = $emailData['body'];
+        $mail->AltBody = $emailData['body'];
+        $mail->send();
+        return Mail::create($emailData);
+    }
+}
+
+
+if(!function_exists('admin_url')){
+    function admin_url($path = NULL){
+        return base_url('admin/'.$path);
+    }
+}
+
+if(!function_exists('admin_assets_url')){
+    function admin_assets_url($path = NULL){
+        return base_url('public/admin_assets/'.$path);
+    }
+}
+
+if(!function_exists('get_awaiting_approval')){
+    function get_awaiting_approval($modelName){
+        $count = count($modelName::where(['status'=>0])->get());
+        return $count;
+    }
+}
+
+if(!function_exists('flash_msg')){
+    function flash_msg(){
+        $CI =& get_instance();
+        return $CI->session->flashdata('msg');
+    }
+}
+
+if(!function_exists('check_current_page')){
+    function check_current_page($page, $segment = 2){
+        $CI =& get_instance();
+        return ($page == $CI->uri->segment($segment)) ? 'class="active"' : '';
+    }
+}
+
+if(!function_exists('get_random_class')){
+    function get_random_class(){
+        $availableClasses = ['success', 'info', 'danger','warning'];
+        return $availableClasses[rand(0,3)];
+    }
+}
+
+if(!function_exists('time_since')){
+    function time_since($timestamp){
+        $datetime1=new DateTime("now");
+        $datetime2=date_create($timestamp);
+        $diff=date_diff($datetime1, $datetime2);
+        $timemsg='';
+        if($diff->y > 0){
+            $timemsg = $diff->y .' year'. ($diff->y > 1?"'s":'');
+
+        }
+        else if($diff->m > 0){
+            $timemsg = $diff->m . ' month'. ($diff->m > 1?"'s":'');
+        }
+        else if($diff->d > 0){
+            $timemsg = $diff->d .' day'. ($diff->d > 1?"'s":'');
+        }
+        else if($diff->h > 0){
+            $timemsg = $diff->h .' hour'.($diff->h > 1 ? "'s":'');
+        }
+        else if($diff->i > 0){
+            $timemsg = $diff->i .' minute'. ($diff->i > 1?"'s":'');
+        }
+        else if($diff->s > 0){
+            $timemsg = $diff->s .' second'. ($diff->s > 1?"'s":'');
+        }
+
+        $timemsg = $timemsg.' ago';
+        return $timemsg;
+    }
+}
+
+if(!function_exists('date_difference')){
+    function date_difference($date1,$date2){
+        $date1=date_create($date1);
+        $date2=date_create($date2);
+        $diff=date_diff($date1,$date2);
+        return $diff->days;
+    }
+}

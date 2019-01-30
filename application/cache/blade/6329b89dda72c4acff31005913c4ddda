@@ -1,0 +1,52 @@
+   <link rel="stylesheet" href="<?php echo admin_assets_url('plugins/bootstrap-star-rating/star-rating.min.css'); ?>">
+   <script src="<?php echo admin_assets_url('plugins/bootstrap-star-rating/star-rating.min.js'); ?>"></script>
+   <form action="">
+    <div class="input-group">
+        <input type="text" class="form-control input-lg search-input" autocomplete="off" id="search-agency" placeholder="Search for any Agency..">
+        <span class="input-group-btn">
+            <button type="submit" name="search" id="search-btn" class="btn btn-primary btn-lg"><i class="fa fa-search"></i></button>
+        </span>
+    </div>
+</form>
+<ul class="nav nav-pills nav-stacked contacts-list search-list" id="search-results" style="display: none; height:auto">
+	
+</ul>
+<br>
+
+<?php $__env->startSection('end-script'); ?>
+    @parent
+
+    <script type="application/javascript">
+        $(document).ready(function () {
+            var searchResults = $('#search-results');
+            $('#search-agency').on('keyup', function () {
+                var searchTxt = $.trim($(this).val());
+                if(searchTxt.length > 0){
+                    $.ajax({
+                        url: '<?php echo base_url('agency/search').'/'; ?>' + searchTxt,
+                        dataType : 'html',
+                        success : function (result) {
+                            searchResults.html(result);
+                            searchResults.show();
+							$(".star-rating").rating({
+							"size":"xs",
+							"clearButton" : '',
+							"showCaption" : false,
+							"readonly" : true
+							});
+                        }
+                    });
+                }else{
+                    searchResults.hide();
+                }
+            });
+
+            searchResults.slimscroll({
+                height: 'auto'
+            }).css("width", "100%").css("overflow", "visible");
+
+            $(".search-list").css("height", 'auto');
+            $(".slimScrollDiv").css("overflow", 'visible').css("height", 'auto');
+        });
+    </script>
+<?php $__env->stopSection(); ?>

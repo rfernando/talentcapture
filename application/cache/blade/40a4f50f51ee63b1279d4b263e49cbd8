@@ -1,0 +1,58 @@
+<li style="list-style-type:none;">
+    <label><?php echo $hired_candidate->name; ?></label>
+    <input type="hidden" name="hired_candidates[<?php echo $hired_candidate->id; ?>][candidate_id]" class="form-control" value="<?php echo $hired_candidate->id; ?>">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="input-group">
+                <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                <input type="text" name="hired_candidates[<?php echo $hired_candidate->id; ?>][start_date]" class="form-control datepicker" placeholder="Start Date" data-required="true" required>
+            </div>
+        </div>
+        <div class="col-xs-6">
+            <div class="input-group">
+                <span class="input-group-addon"><i class="fa fa-dollar"></i></span>
+<!--            modified for RP-661 input type="text" -> input type="number"-->
+                <input type="text" name="hired_candidates[<?php echo $hired_candidate->id; ?>][base_salary]" id="numberInput"  class="form-control" placeholder="Base Salary" data-required="true" required>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="row">
+        <div class="col-xs-12">
+            <textarea class="form-control" name="hired_candidates[<?php echo $hired_candidate->id; ?>][additional_info]" placeholder="Additional Details" data-required="true"></textarea>
+        </div>
+    </div>
+    <hr>
+</li>
+
+<!--to prevent entering + - and e in the Base Salary text box RP-661-->
+<script>
+/*var inputBox = document.getElementById("numberInput");
+
+var invalidChars = [
+  "-",
+  "+",
+  "e",
+];
+
+inputBox.addEventListener("input", function() {
+  this.value = this.value.replace(/[e\+\-]/gi, "");
+});
+
+inputBox.addEventListener("keydown", function(e) {
+  if (invalidChars.includes(e.key)) {
+    e.preventDefault();
+  }
+});
+*/
+
+$("#numberInput").blur(function(){
+
+   $(this).parseNumber({format:"#,###.00", locale:"us"});
+   
+   $(this).formatNumber({format:"#,###.00", locale:"us"});
+
+
+});
+
+</script>

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>  <?php echo $candidate->name; ?> </title>
+</head>
+<body>
+	<div class="container">
+		
+		<span><?php echo $candidate->employment_history; ?></span>
+	</div>
+</body>
+</html>

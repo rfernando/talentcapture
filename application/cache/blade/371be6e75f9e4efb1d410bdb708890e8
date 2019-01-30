@@ -1,0 +1,16 @@
+<div class="box-comment">
+    <?php if($note->added_by->profile_pic): ?>
+        <img class="img-circle img-sm"  src="<?php echo base_url('public/uploads/'.$note->added_by->profile_pic); ?>"  alt="user">
+    <?php else: ?>
+        <img class="img-circle img-sm"  src="<?php echo base_url('public/img/default_profile_pic.jpg'); ?>" alt="user">
+    <?php endif; ?>
+    <div class="comment-text">
+        <span class="username"><?php echo $note->added_by->first_name." ".$note->added_by->last_name; ?>
+
+            <!-- Need time and date  -->
+            <!-- <i class="fa fa-clock-o text-muted pull-right"><?php // echo time_since($note->updated_at);?></i> -->
+            <i class="text-muted pull-right" ><?=$note->updated_at;?></i>
+        </span>
+        <span style="white-space: pre-line;"><?php echo $note->feedback; ?> </span>
+    </div>
+</div>

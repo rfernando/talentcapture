@@ -1,0 +1,147 @@
+<?php
+
+/**
+ * Class Dashboard
+ *
+ * This is Dashboard Class
+ * All Functionality related to
+ * Dashboard will go in this class
+ */
+class Dashboard extends MY_Controller{
+
+    public function __construct() {
+        $this->authUserRequired = TRUE;
+        parent::__construct();
+        if($this->get_profile_percentage() < 100)
+            redirect('profile/update');
+    }
+
+    /**
+     * index
+     *
+     * Function to check user Role and
+     * accordingly display appropriate Dashboard
+     */
+    public function index() {
+        //commenting code
+        //$this->data['subscription']=$this->check_subscription();
+
+
+        $user = User::find(get_user('id'));                                          // Get Current user object
+      // echo "<pre>"; print_r($user);
+
+        $this->data['myJobs'] = $user->created_jobs()->open();                               // Get Jobs Created By current user
+        $this->data['acceptedJobs'] = $user->accepted_jobs()->open();                        // Get the jobs Accepted by current user
+        $userIndustrySpecialityAreas = $user->industries()->lists('id');
+        if((count($userIndustrySpecialityAreas))){
+            $jobs = Job::active()->open()->where('user_id', '!=', get_user('id'))->whereIn('industry_id', $userIndustrySpecialityAreas);
+            if($user->type == 'agency'){
+                $userProfessionSpecialityAreas = $user->professions();
+                if($userProfessionSpecialityAreas->count())
+                    $jobs = $jobs->whereIn('profession_id', $userProfessionSpecialityAreas->lists('id'));
+                    //echo '<pre>';print_r($jobs->get());exit();
+                $this->data['agency'] = User::with('user_profile')->find(get_user('id'));
+                $this->data['agency']->load('agency_ratings', 'user_profile');
+                $avgRating = 0;
+                //$user_id = array();
+                $this->data['no_of_reviews'] = count($this->data['agency']->agency_ratings);
+                if(count($this->data['agency']->agency_ratings) >= 7){
+                    foreach ($this->data['agency']->agency_ratings as $rating) {
+                        $avgRating += $rating->pivot->rating;
+                        //print_r($rating->pivot->rating);
+                    }
+                    $avgRating = $avgRating/count($this->data['agency']->agency_ratings);
+                }
+                $this->data['avgRating'] = $avgRating;
+            }
+
+            $this->data['agency'] = User::with('user_profile')->find(get_user('id'));
+            $this->data['agency']->load('agency_ratings', 'user_profile');
+
+            $rejected_rater = array();
+            foreach ($this->data['agency']->agency_ratings as $rating) {
+                if($rating->pivot->rating <= 2.5){
+                    $rejected_rater[] = $rating->pivot->user_id;
+                }
+            }
+            $this->data['rejected_rater'] = $rejected_rater;
+
+            $exclude =  array_merge($user->accepted_jobs()->lists('id'), $user->rejected_jobs()->lists('id'), $this->getJobsAcceptedByMax());
+            $this->data['newJobsAlert'] = (count($exclude)) ? $jobs->whereNotIn('id',$exclude)->get() : $jobs->get();
+//            echo '<pre>';print_r($this->data['newJobsAlert']);
+        }else{
+            $this->data['newJobsAlert']  = [];
+        }
+        //print_r($this->data['agency']['id']); //16
+//        print_r($user['id']); //16
+//        print_r($this->data['newJobsAlert'][0]['id']); //47
+//        print_r($this->data['newJobsAlert'][0]['user_id']); //6
+//        print_r($this->data['newJobsAlert'][0]['industry_id']); //2
+
+        $stats_job = ['jobs_posted', 'jobs_closed', 'candidates_accepted', 'candidates_declined', 'candidates_hired'];
+        $stats_so=array();
+        if($user->type == 'agency')
+            $stats_so = ['so_accepted', 'so_candidates_accepted', 'so_candidates_declined', 'so_candidates_hired'];
+
+        foreach ($stats_job as $stat){
+            $methodName =  "get_$stat".'_count';
+            $this->data['stats_job'][$stat] = $this->$methodName($user->id);
+        }
+
+        if(isset($stats_so)){
+            foreach ($stats_so as $stat){
+                $methodName =  "get_$stat".'_count';
+                $this->data['stats_so'][$stat] = $this->$methodName($user->id);
+            }
+        }
+
+
+        $userData = $this->session->userdata();
+        $this->data['userType'] = $userData['type'];
+
+        $this->load->blade($this->user['type'].'/dashboard', $this->data);
+    }
+
+
+    private function check_subscription(){
+        $data=array();
+        $user = User::find(get_user('id'));
+        $freetrial = Free_trial::withTrashed()->get()->toArray();
+        if($user->is_trial == '0'){
+
+            $user_plans_obj = Users_plans::where(['user_id'=>get_user('id')])->first();
+
+            if(!isset($user_plans_obj)){
+                $data['type']='danger';
+                $data['msg']='Your Trial Period Has Expired Please Select Subscription Plan';
+            }else{
+                $user_plans = $user_plans_obj->toArray();
+                $date1=date("Y-m-d",strtotime($user_plans['created_at']));
+                $date2=date("Y-m-d");
+                if($user_plans['no_of_days'] < date_difference($date1,$date2)){
+                    $data['type']='danger';
+                    $data['msg']='Your Subscription Plan is Expired Please Select Subscription Plan';
+
+                }
+            }
+        }else if($user->is_trial == '1'){
+            $date1=date("Y-m-d",strtotime($user->created_at));
+            $date2=date("Y-m-d");
+
+            if($freetrial[0]['no_of_days'] < date_difference($date1,$date2)){
+                $user->is_trial='0';
+                $user->save();
+                $data['type']='danger';
+                $data['msg']='Your Trial Period Get Ended Please Subscription Plan';
+
+            }
+
+        }
+        return $data;
+
+    }
+
+
+
+
+}

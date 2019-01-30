@@ -1,0 +1,641 @@
+<?php
+
+class Jobs extends MY_Controller{
+
+    /**
+     * @var array
+     *
+     * User Profile Fields Array
+     */
+    private $jobDetailsFields = [
+        [
+            'name' => 'title',
+            'type' => 'text',
+            'placeholder' => 'Job Title',
+            'validation' => 'required'
+        ],
+        [
+            'name' => 'industry_id',
+            'type' => 'select',
+            'placeholder' => 'Industry',
+            'class' => 'select2',
+            'validation' => 'required'
+        ],
+        [
+            'name' => 'profession_id',
+            'type' => 'select',
+            'options'  => [],
+            'placeholder' => 'Job Profession',
+            'class' => 'select2',
+            'validation' => 'required'
+        ],
+        [
+            'name' => 'notify_agencies',
+            'type' => 'radio',
+            'label' => 'Notify Only Preferred Agencies',
+            'value' => 1,
+            'validation' => 'trim',
+        ],
+        [
+            'name' => 'notify_agencies',
+            'type' => 'radio',
+            'label' => 'Notify All Agencies',
+            'value' => 0,
+            'validation' => 'trim',
+        ],
+        [
+            'name' => 'preferred_agencies[]',
+            'type' => 'select',
+            'options'  => [],
+            'placeholder' => 'Preferred Agencies',
+            'class' => 'select2',
+            'multiple' => 'multiple',
+            'style' => 'display:none'
+        ],
+        [
+            'name' => 'skills',
+            'type' => 'text',
+            'placeholder' => 'Primary Skills',
+            'validation' => 'required'
+        ],
+        [
+            'name' => 'job_location',
+            'type' => 'text',
+            'placeholder' => 'Location',
+            'validation' => 'required'
+        ],
+        [
+            'name' => 'position_type[]',
+            'type' => 'select',
+            'placeholder' => 'Resource Type',
+            'validation' => 'required',
+            'multiple'  => 'multiple',
+            'options' => ['Direct Hire'=>'Direct Hire', 'Contract'=>'Contract', 'Contract to Hire'=>'Contract to Hire']
+        ],
+        [
+            'name' => 'salary',
+            'type' => 'text',
+            'placeholder' => 'Salary or Rate',
+            'validation' => 'required'
+        ],
+        [
+            'name' => 'visa_sponsorship',
+            'type' => 'select',
+            'placeholder' => 'Visa Sponsorship?',
+            'options' => ['No', 'Yes'],
+            'validation' => 'required'
+        ],
+        [
+            'name' => 'client_name',
+            'type' => 'text',
+            'placeholder' => 'Client Name',
+            'validation' => 'required',
+        ],
+        [
+            'name' => 'client_name_confidential',
+            'type' => 'checkbox',
+            'label' => 'Client Name Confidential',
+            'value' => 1,
+            'validation' => 'trim',
+        ],
+        [
+            'name' => 'warranty_period',
+            'type' => 'text',
+            'placeholder' => 'Warranty Period',
+            'validation' => 'trim|required'
+        ],
+        [
+            'name' => 'split_percentage',
+            'type' => 'text',
+            'placeholder' => 'Split Percentage',
+            'validation' => 'trim|required'
+        ],
+        [
+            'name' => 'description',
+            'type' => 'textarea',
+            'placeholder' => 'Job Description',
+            'validation' => 'required'
+        ],
+        [
+            'name' => 'note',
+            'type' => 'textarea',
+            'rows' => 3,
+            'placeholder' => 'General Notes',
+            'validation' => 'trim'
+        ],
+
+    ];
+
+    private $candidateFields = [
+        [
+            'name' => 'resume',
+            'type' => 'file',
+            'accept' => 'application/pdf,application/vnd.ms-excel',
+            'placeholder' => 'Upload Attachment(s)',
+            'validation' => 'required'
+        ]
+    ];
+    
+    function __construct() {
+        $this->authUserRequired = TRUE;
+        parent::__construct();
+        $industryOptions = User::find(get_user('id'))->industries();
+        $this->jobDetailsFields[1]['options'] = $industryOptions->lists('title','id');
+        if(count($this->jobDetailsFields[1]['options'])){
+            $industries = $industryOptions->lists('id');
+            $this->jobDetailsFields[2]['options'] = Industry::find($industries[0])->professions()->lists('title','id');
+        }
+
+        $this->data['active_jobs'] = Job::where(['user_id' => get_user('id'),'closed'=>0])->get();
+        $this->data['closed_jobs'] = Job::where(['user_id' => get_user('id'),'closed'=>1])->get();
+    }
+
+    function index(){
+        $this->load->blade('jobs/index',$this->data);
+    }
+
+    function add_new(){
+        $this->data['jobDetailsFields'] = $this->get_values();
+        $this->load->blade('jobs/add_new',$this->data);
+    }
+
+    function save_job(){
+        if($this->validateFields()){
+            $jobDetails = $this->input->post();
+            if(array_key_exists('position_type', $jobDetails)){
+                $jobDetails['position_type'] = implode(', ', $jobDetails['position_type']);
+            }else{
+                $jobDetails['position_type'] = '';
+            }
+            $jobDetails['user_id'] = get_user('id');
+            //p($jobDetails);
+
+            if(!empty($jobDetails['notify_agencies']) && !empty($jobDetails['preferred_agencies'])){
+                $jobDetails['notify_preferred'] = 1;
+            }
+            $jobData = Job::create($jobDetails);
+
+
+            if(!empty($jobDetails['preferred_agencies'])){
+                foreach ($jobDetails['preferred_agencies'] as $preVal){
+                    $arrPreferred = array(
+                        "job_id" => $jobData->id,
+                        "agency_id" => $preVal
+                    );
+                   Job_preferred_agencies::create($arrPreferred);
+                }
+            }
+            $this->set_flashMsg('success','The Job has been added Successfully');
+            redirect(base_url('jobs'));
+        }
+    }
+
+    function view_detail($id = null){
+        if($id == null || !is_numeric($id))
+            redirect(base_url('jobs'));
+        $this->data['job'] = Job::find($id);
+        $this->data['candidates'] = $this->data['job']->candidates()->orderBy('client_accepted','desc')->get();
+        $this->data['agencies'] = $this->data['job']->accepted_by_agencies()->with('user_profile')->get();
+        //$this->data['agencies'] = $this->data['job']->candidates()->agency()->with('user_profile')->get();
+        //p($this->data['agencies']->toArray());
+        $this->load->blade('jobs/view_detail',$this->data);
+    }
+
+    private function get_values($job_id = NULL){
+        $userType = get_user('type');
+        $userId = get_user('id');
+        $this->jobDetailsFields[11]['placeholder'] =  ($userType == 'employer')  ? "Company Name" : $this->jobDetailsFields[11]['placeholder'];
+        $this->jobDetailsFields[11]['value'] = ($userType == 'employer') ? User_profile::find(get_user('id'))->company_name : '';
+        if($userType == 'employer') unset($this->jobDetailsFields[11], $this->jobDetailsFields[12], $this->jobDetailsFields[13], $this->jobDetailsFields[14]);
+
+
+
+        if($job_id != NULL){
+            $job = Job::find($job_id);
+
+            $jobIndustry = $job->industry_id;
+
+            $userPrefAgencies =  User::leftJoin('industry_user', function($ljoin){
+                $ljoin->on('users.id', '=', 'industry_user.user_id');
+            })->join('preferred_agencies', function($ljoin){
+                $ljoin->on('users.id', '=', 'preferred_agencies.agency_id');
+            })->where('preferred_agencies.user_id', $userId)->where('users.type', 'agency')->where("industry_id", $jobIndustry)->get()->toArray();
+            $userVal = array();
+            $userAgencyIds = array();
+            if(!empty($userPrefAgencies)){
+                foreach ($userPrefAgencies as $prefVal) {
+                    $userAgencyIds[] = $prefVal['id'];
+                    $userVal[$prefVal['id']] = $prefVal['first_name'] . " " . $prefVal['last_name'];
+                }
+            }
+            $this->jobDetailsFields[5]['options'] = $userVal;
+            $job_preferred_agencies = Job_preferred_agencies::where("job_id", $job_id)->get()->toArray();
+
+            foreach ($this->jobDetailsFields as &$field){
+                if($field['name'] == 'position_type[]')
+                    $field['selected'] = (strpos($job->position_type, ', ') !== false) ? explode(', ', $job->position_type) : $job->position_type ;
+                else
+                    $field['value'] = $job->{$field['name']};
+
+            }
+            if(!empty($job->notify_preferred)){
+                $this->jobDetailsFields[3]['value'] = 1;
+                $this->jobDetailsFields[4]['value'] = 0;
+                $this->jobDetailsFields[3]['checked'] = "true";
+            }else{
+                $this->jobDetailsFields[3]['value'] = 1;
+                $this->jobDetailsFields[4]['value'] = 0;
+                $this->jobDetailsFields[4]['checked'] = "true";
+            }
+
+            $selectedValArr = array();
+            foreach ($this->jobDetailsFields as $key => $field){
+                if($field['name'] == 'preferred_agencies[]'){
+                    foreach ($job_preferred_agencies as $key => $prefVal) {
+                        if (in_array($prefVal['agency_id'], $userAgencyIds)) {
+                            $arrKey = array_search($prefVal['agency_id'], $userAgencyIds);
+                            $selectedValArr[] = $userAgencyIds[$arrKey];
+                        }
+                    }
+                    $this->jobDetailsFields[5]['selected'] = $selectedValArr ;
+                }
+
+            }
+
+        }
+
+        return $this->jobDetailsFields;
+    }
+
+    function get_profession($industryId){
+        $category =  Industry::find($industryId)->professions()->lists('title','id');
+        $resultArray = [];
+        foreach ($category as $id=>$val){
+            $resultArray[] = ["id"=>$id, "text"=>$val];
+        }
+       echo json_encode($resultArray);
+    }
+
+    function get_agencies($industryId){
+        $userType = 'agency';
+        $userId = get_user('id');
+//        $category =  User::where("type", 'agency')->users()->where("industry_id", $industryId);
+        $agencies =  User::leftJoin('industry_user', function($ljoin){
+            $ljoin->on('users.id', '=', 'industry_user.user_id');
+        })->join('preferred_agencies', function($ljoin){
+            $ljoin->on('users.id', '=', 'preferred_agencies.agency_id');
+        })->where('preferred_agencies.user_id', $userId)->where('users.type', 'agency')->where("industry_id", $industryId)->get()->toArray();
+
+        $resultArray = [];
+        foreach ($agencies as $id=>$val){
+            $resultArray[] = ["id"=>$val['id'], "text"=>$val['first_name'] . " ". $val['last_name']];
+        }
+        echo json_encode($resultArray);
+    }
+
+    function candidate_detail($job_id, $candidate_id){
+        if($candidate_id == null || !is_numeric($candidate_id))
+            redirect(base_url('jobs'));
+        $this->data['job'] = Job::find($job_id);
+        $this->data['candidates'] = $this->data['job']->candidates()->orderBy('client_accepted','desc')->get();
+        $this->data['candidate'] = Candidate::with('hire_details')->find($candidate_id);
+        //$this->data['agencies'] = $this->data['job']->accepted_by_agencies()->get()->toArray();
+        $this->data['agencies'] = $this->data['candidate']->agency()->get();
+        $this->data['user_type'] = get_user('type');
+
+        $this->data['candidatesdocuments']  = Candidate_documents::where([
+            'candidate_id' => $candidate_id
+        ])->get();
+        $this->data['hasHireDetails'] = $this->data['candidate']->hire_details()->where(['type'=>'Request Payment'])->count();
+        //p($this->data['candidate']->added_by()->first());
+        $this->data['candidateFields'] = $this->candidateFields;
+        header("X-Frame-Options: ALLOW-FROM https://docs.google.com");
+        $this->load->blade('jobs/view_candidate_detail',$this->data);
+    }
+
+    function  upload_attachment(){
+        $uploadData = upload_file('resume', ['upload_path' => APPPATH.'../public/uploads/docs/', 'allowed_types' => 'pdf|xsl|doc|docx' ]);
+        $candidateDetails = $this->input->post('candidates');
+        if($this->validateFields() && $uploadData['success']){
+            $arrCandidateJobid = explode('_',$candidateDetails['candidatejob_id']);
+            $candidateDetails['title']     = $uploadData['upload']->file_name;
+            $candidateDetails['file_path'] = $uploadData['upload']->upload_path;
+            $candidateDetails['candidate_id'] = $arrCandidateJobid[0];
+            $candidate = Candidate_documents::create($candidateDetails);
+            $this->set_flashMsg('success','Your attachment is successfully uploaded');
+            redirect(base_url('jobs/candidate_detail/'.$arrCandidateJobid[1].'/'.$arrCandidateJobid[0]));
+        }else{
+            $this->set_flashMsg('error','File type uploaded is not allowed');
+            redirect(base_url('jobs/candidate_detail/'.$arrCandidateJobid[1].'/'.$arrCandidateJobid[0]));
+        }
+    }
+
+    function agency_detail($job_id, $agency_id){
+        if($agency_id == null || !is_numeric($agency_id))
+            redirect(base_url('jobs'));
+        $this->data['job'] = Job::find($job_id);
+        $this->data['candidates'] = $this->data['job']->candidates()->orderBy('client_accepted','desc')->get();
+        //$this->data['agencies'] = $this->data['job']->accepted_by_agencies()->get()->toArray();
+        $this->data['agencies'] = $this->data['job']->accepted_by_agencies()->with('user_profile')->get();
+        $this->data['agency'] = User::with('user_profile')->find($agency_id);
+        $this->data['agency']->load('agency_ratings', 'user_profile');
+        $avgRating = 0;
+        if(count($this->data['agency']->agency_ratings)){
+            foreach ($this->data['agency']->agency_ratings as $rating)
+                $avgRating += $rating->pivot->rating;
+            $avgRating = $avgRating/count($this->data['agency']->agency_ratings);
+        }
+        $this->data['avgRating'] = $avgRating;
+        $this->data['usertype'] = $this->data['agency']->type;
+        $userFavAgenciesList = User::find(get_user('id'))->favourite_agencies()->lists('id');
+        $this->data['isFavourite'] = in_array($agency_id, $userFavAgenciesList);
+        $this->load->blade('jobs/view_agency_detail',$this->data);
+    }
+
+    function candidate_rsvp($candidateId, $rsvp){
+
+        $result = ['status'=> 0,'msg'=>''];
+        $available_rsvp = ['accept' => 1 , 'reject' => -1];
+
+        if(!in_array($rsvp, array_keys($available_rsvp)))
+            redirect(base_url());
+        $candidate = Candidate::find($candidateId);
+        $candidate->client_accepted = $available_rsvp[$rsvp];
+        $result['status'] = $candidate->save();
+        if($result['status']){
+            $class = ($candidate->client_accepted == 1) ? 'success' : 'danger';
+            $result['msg'] = "<label class='label label-$class'>".ucfirst($rsvp)."ed</label>";
+
+            $useremail = $candidate->agency()->first()->email;
+            $userprofile = User_profile::find(get_user('id'));
+            $User = User::find(get_user('id'));
+            $job = Job::find($candidate->applied_job()->first()->id);
+
+            if($rsvp == 'accept'){
+                $subjecttxt = "Interest in your candidate!";
+                //$bodytxt = ucwords($userprofile->company_name)." has accepted your candidate. Please log into your account to communicate directly and coordinate an interview time.";
+                $bodytxt = "Your Candidate: ".$candidate->name.", has been accepted for consideration for the ".$job->title." opening. We recommend you <a href=".base_url('login').">login to your account</a> and message ".ucwords($User->first_name." ".$User->last_name)." to coordinate next steps.";
+            }else{
+                $subjecttxt = "Your candidate has been rejected";
+                $bodytxt = ucwords($userprofile->company_name)." has determined your candidate ".$candidate->name." is not the right fit. Please log into your account and review the notes section of the candidate profile to see if they provided feedback.";
+            }
+
+            $emailData = [
+                'to'        => $useremail,
+                'from'      => WEBSITE_FROM_EMAIL,
+                'subject'   => $subjecttxt
+            ];
+
+            $emailData['body'] = $bodytxt;
+            email($emailData);
+        }
+
+        echo json_encode($result);die();
+    }
+
+
+    function add_feedback($candidateID){
+        $note = Candidate_feedback::create(['feedback'=>$this->input->post('employer_feedback'), 'user_id'=>get_user('id'), 'candidate_id'=>$candidateID]);
+        $note->load('added_by');
+        $result['status'] = 1;
+        $result['msg'] = $this->load->blade('partials/_note',compact('note'),true);
+
+        //Sending email to Agency who added the candidate
+
+        $candidate = Candidate::find($candidateID);
+        $useremail = $candidate->agency()->first()->email;
+
+        $job_id = $candidate->job_id;
+        $candidate_name = $candidate->name;
+        $job_details = Job::find($job_id);
+        $job_title = $job_details->title;
+
+        /*'subject'   => ucwords(get_user('first_name'))." ".ucwords(get_user('last_name'))." has added candidate information in the notes section for you to review.";*/
+
+        $emailData = [
+            'to'        => $useremail,
+            'from'      => WEBSITE_FROM_EMAIL,
+            'subject'   => "Candidate Feedback Provided"
+        ];
+        $bodyText = "<table><tr><td>Job:</td><td>".$job_title."</td></tr><tr><td>Candidate:</td><td>".$candidate_name."</td></tr></table>";
+        $bodyText .= "<br/><br/>".$this->input->post('employer_feedback');
+
+        $emailData['body'] = $bodyText."<br/><br/><br/>To view, log into your <a href=".base_url('login').">TalentCapture</a> account.";
+        email($emailData);
+
+        echo json_encode($result); die();
+    }
+
+
+    function close_job($job_id, $onlyHire = 0){
+        $this->data['job'] = Job::find($job_id);
+        $this->data['candidates'] = $this->data['job']->candidates()->orderBy('client_accepted','desc')->get();
+        $this->data['agencies'] = $this->data['job']->accepted_by_agencies()->with('user_profile')->get();
+        //$this->data['accepted_agencies'] = $this->data['job']->accepted_by_agency()->get()->toArray();
+        $user = User::find(get_user('id'));
+        $this->data['agencies_ratings'] = $user->ratings()->lists('rating','agency_id');
+        $this->data['favourite_agencies'] = $user->favourite_agencies()->lists('agency_id');
+        $this->data['candidates_list'] = $this->data['job']->candidates()->where("client_accepted",1)->lists("name", 'id');
+        $this->data['page_name'] = ($onlyHire) ? 'Hire Candidates' : 'Close Job';
+        $this->load->blade('jobs/close_job',$this->data);
+    }
+
+    function close($id){
+        $this->hire_candidates();
+        $job = Job::find($id);
+        $job->closed = 1;
+        $job->save();
+
+        /*$userprofile = User_profile::find(get_user('id'));
+        $useremail = $candidate->agency()->first()->email;
+        $emailData = [
+            'to'        => $useremail,
+            'from'      => WEBSITE_FROM_EMAIL,
+            'subject'   => 'Candidate Hired!'
+        ];
+
+        $emailData['body'] = "Congratulations! Your candidate <Candidate Name> has accepted an offer from <Employer or Agency.>  A TalentCapture representative will contact you within the next business day to verify the information as correct  Following are the new hire details. List Start Date, Salary, and any comments";
+        email($emailData);*/
+
+
+        //Send email to all agency that added that candidate
+        $arruserjobaccepted = $job->accepted_by_agencies()->get()->toArray();
+        if(!empty($arruserjobaccepted)){
+            foreach ($arruserjobaccepted as $jobdetails) {
+                $tempuserarr[] = $jobdetails['pivot']['user_id'];
+            }
+            $tempuserarr = array_unique($tempuserarr);
+
+
+            foreach ($tempuserarr as $userid) {
+
+                $userhiredforjob = Candidate::where([
+                    'user_id' => $userid,
+                    'job_id' => $id,
+
+                ])->get()->toArray();
+
+                if(empty($userhiredforjob)){
+
+                    $useremail = User::find($userid);
+                    $emailData = [
+                        'to' => $useremail->email,
+                        'bcc' => WEBSITE_FROM_EMAIL,
+                        'from' => WEBSITE_FROM_EMAIL,
+                        'subject' => 'Search Opportunity Closed'
+                    ];
+
+                    $userprofile = User_profile::find(get_user('id'));
+                    $emailData['body'] = ucwords($userprofile->company_name) . " has closed the following SO: " . $job->title . "<br/><br/>You can no longer submit candidates for this job. However, the details along with any candidates you have submitted will be accessible.";
+                    email($emailData);
+                }
+            }
+        }
+        /*RP-273 Changed Messaged */
+       // $this->set_flashMsg('success', 'You will no longer receive candidates for this Job. You can copy this Job as new in the future should you choose to reopen it.');
+        $this->set_flashMsg('success', 'This job is now closed. You can copy this job as new at any time.');
+        redirect(base_url('jobs/view_detail/'.$id));
+    }
+
+    function hire_candidates($jobID = false, $candidateId = false){
+        if($hired_candidates = $this->input->post('hired_candidates')){
+            foreach ($hired_candidates as $hiredCandidate){
+
+                $hiredCandidate['added_by'] = get_user('id');
+                $hiredCandidate['type'] = 'Hire';
+                Hire_detail::create($hiredCandidate);
+                $candidate = Candidate::find($hiredCandidate['candidate_id']);
+                $candidate->hired = 1 ;
+                $candidate->start_date = date('Y-m-d', strtotime($hiredCandidate['start_date']));
+                $candidate->base_salary = $hiredCandidate['base_salary'];
+                $candidate->additional_info = $hiredCandidate['additional_info'];
+                $candidate->save();
+
+                $candidateOwner = $candidate->user_id;
+                $hire_details = Hire_detail::where("added_by", $candidateOwner)->where("candidate_id", $candidateId)->get()->toArray();
+                
+                /*echo "<pre>";
+                print_r($hire_details);
+                exit;*/
+
+                //Send email to agency that added that candidate
+                $useremail = $candidate->agency()->first()->email;
+                $emailData = [
+                    'to'        => $useremail,
+                    'bcc'       => WEBSITE_FROM_EMAIL,
+                    'from'      => WEBSITE_FROM_EMAIL,
+                    'subject'   => ucwords($candidate->name).' has been hired!'
+                ];
+
+                $emailData['body'] = "";
+                $userType = get_user('type');
+
+                if(count($hire_details) > 0){
+                    $emailData['body'] = 'Congratulations! Your candidate '.$candidate->name.' has been confirmed as hired! We will confirm employment once the candidate has successfully started the job. <br/><br/>An invoice will then be generated and you will be paid in accordance with the agreed upon TalentCapture terms and conditions. <br/><br/> Please <a href="'. site_url("login") . '">Log into</a> your account.';
+                }else if($userType == "employer"){
+                    $emailData['body'] = 'Congratulations! '.get_user('first_name').' has marked your candidate as hired! We recommend you log into your account and verify the hire details by selecting the $ icon on the candidate\'s profile. <br/><br/>Once the candidate has successfully started the new job, an invoice will be generated to the client. You will then be paid in accordance with the agreed upon TalentCapture terms and conditions. <br/><br/> Please <a href="'. site_url("login") . '">Log into</a> your account.';
+                }else if($userType == "agency"){
+                    $emailData['body'] = 'Congratulations! '.get_user('first_name').' has marked your candidate as hired! We recommend you log into your account and verify the start date and salary by selecting the $ icon on the candidate\'s profile. <br/><br/>Once the candidate has successfully started the new job, an invoice will be generated to the client. You will then be paid in accordance with the agreed upon TalentCapture terms and conditions. <br/><br/> Please <a href="'. site_url("login") . '">Log into</a> your account.';
+                }
+                //$emailData['body'] = 'Congratulations! '.get_user('first_name')." ".get_user('last_name').' has marked your candidate as hired! Please login to your account and verify the hire details by selecting the "request payment" icon.';
+                /*echo "<pre>";
+                print_r($emailData);
+                exit;*/
+                email_on_message($emailData);
+
+            }
+        }
+        $this->sync_ratings_and_favourites();
+        if($jobID && $candidateId){
+            $this->set_flashMsg('success','Congratulations on hiring this candidate. A representative will follow up with you soon to verify the details.');
+            redirect(base_url('jobs/candidate_detail/'.$jobID.'/'.$candidateId));
+        }
+        elseif($jobID){
+            $this->set_flashMsg('success','Selected candidate(s) have been hired Successfully !!');
+            redirect(base_url('jobs/view_detail/'.$jobID));
+        }
+    }
+
+    function sync_ratings_and_favourites(){
+        // Sync Agency Ratings
+        if(count($this->input->post('agency_rating')))
+            User::find(get_user('id'))->ratings()->sync($this->input->post('agency_rating'));
+
+        // Sync Favourite Agencies
+        if(count($this->input->post('favourite_agencies')))
+            User::find(get_user('id'))->favourite_agencies()->sync($this->input->post('favourite_agencies'));
+    }
+
+    function reopen_job($job_id){
+        $job = Job::find($job_id)->toArray();
+        unset($job['id'],$job['status'], $job['closed']);
+        $job = Job::create($job);
+        redirect(base_url('jobs/view_detail/'.$job->id));
+    }
+
+    function delete_job($job_id){
+        if(Job::find($job_id)->user()->first()->id == get_user('id')){
+            Job::destroy($job_id);
+            $this->set_flashMsg('success','The Job has been successfully deleted');
+        }else{
+            $this->set_flashMsg('error','You do not have permission to delete this Job');
+        }
+        redirect(base_url('jobs'));
+    }
+
+    function edit_job($job_id){
+        $job = Job::find($job_id);
+        $job->load('user');
+        if($job->user->id != get_user('id')){
+            $this->set_flashMsg('warning','You are not authorised to change this Job Details.');
+            redirect(base_url('jobs/view_detail/'.$job->id));
+        }
+        $this->data['job'] = $job;
+        $this->data['jobDetailsFields'] = $this->get_values($job_id);
+        //p($this->data['jobDetailsFields']);
+        $this->load->blade('jobs/edit_job',$this->data);
+    }
+
+    function update_job($job_id){
+        $job = Job::find($job_id);
+        $job->load('user');
+        if($job->user->id != get_user('id')){
+            $this->set_flashMsg('warning','You are not authorised to change this Job Details.');
+            redirect(base_url('jobs/view_detail/'.$job->id));
+        }
+        $jobDetails = $this->input->post();
+        foreach ($this->input->post() as $fieldName => $value){
+            if($fieldName == 'position_type')
+                $job->position_type = implode(', ', $value);
+            else
+                $job->$fieldName = $value;
+        }
+        if(!empty($jobDetails['notify_agencies']) && !empty($jobDetails['preferred_agencies'])){
+            $job->notify_preferred = 1;
+        }else{
+            $job->notify_preferred = 0;
+        }
+        unset($job->notify_agencies);
+        unset($job->preferred_agencies);
+        $job->save();
+
+        if(!empty($jobDetails['notify_agencies']) && !empty($jobDetails['preferred_agencies'])){
+            $jobPreferred = Job_preferred_agencies::where("job_id", $job_id);
+            $jobPreferred->delete();
+
+            foreach ($jobDetails['preferred_agencies'] as $preVal){
+                $arrPreferred = array(
+                    "job_id" => $job_id,
+                    "agency_id" => $preVal
+                );
+                Job_preferred_agencies::create($arrPreferred);
+            }
+        }else{
+            $jobPreferred = Job_preferred_agencies::where("job_id", $job_id);
+            $jobPreferred->delete();
+        }
+
+        $this->set_flashMsg('success', 'The Job has been updated');
+        redirect(base_url('jobs/view_detail/'.$job->id));
+    }
+}

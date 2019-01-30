@@ -1,0 +1,429 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+/**
+ * Class AuthController
+ *
+ * This class will handle all the Basic Authentication Process
+ */
+class Auth extends  MY_Controller{
+
+    /**
+     * @var array
+     *
+     * Login Fields Array
+     */
+    private $loginFields = [
+        [
+            'name' => 'u_email',
+            'type' => 'text',
+            'placeholder' => 'Email',
+            'validation' => 'required'
+        ],
+        [
+            'name' => 'pwd',
+            'type' => 'password',
+            'placeholder' => 'Password',
+            'validation' => 'required'
+        ],
+    ];
+
+    /**
+     * @var array
+     *
+     * Forgot password Fields Array
+     */
+    private $forgotPassword = [
+        [
+            'name' => 'fp_email',
+            'type' => 'text',
+            'placeholder' => 'Email',
+            'validation' => 'required'
+        ],
+    ];
+
+    /**
+     * @var array
+     *
+     * Registration Fields Array
+     */
+    private $registrationFields = [
+        [
+            'name' => 'users[first_name]',
+            'type' => 'text',
+            'placeholder' => 'First Name',
+            'validation' => 'trim|required'
+        ],
+        [
+            'name' => 'users[last_name]',
+            'type' => 'text',
+            'placeholder' => 'Last Name',
+            'validation' => 'trim|required'
+        ],
+        [
+            'name' => 'users[email]',
+            'type' => 'text',
+            'placeholder' => 'Email Address',
+            'validation' => 'trim|required|valid_email|is_unique[users.email]'
+        ],
+        [
+            'name' => 'users[phone]',
+            'type' => 'text',
+            'placeholder' => 'Phone',
+            'validation' => 'trim|required|numeric'
+        ],
+        [
+            'name' => 'users[password]',
+            'type' => 'password',
+            'placeholder' => 'Password',
+            'validation' => 'required'
+        ],
+        [
+            'name' => 'cnf_password',
+            'type' => 'password',
+            'placeholder' => 'Retype Password',
+            'validation' => 'required|matches[users-password]'
+        ],
+        [
+            'name' => 'user_profiles[company_name]',
+            'type' => 'text',
+            'placeholder' => 'Company Name',
+            'validation' => 'required',
+        ],
+        [
+            'name' => 'user_profiles[company_website_url]',
+            'type' => 'text',
+            'placeholder' => 'Company Website',
+            'validation' => 'required|valid_url',
+        ],
+        [
+            'name' => 'users[type]',
+            'type' => 'select',
+            'placeholder' => 'User Type',
+            'validation' => 'required',
+            'options' => ['' => 'Select User Type','employer' => 'Employer', 'agency' => 'Agency']
+        ],
+        [
+            'name' => 'user_profiles[role]',
+            'type' => 'select',
+            'placeholder' => 'Select Role',
+            'validation' => 'required',
+            'options' => ['' => 'Select Role']
+        ],
+        [
+            'name' => 'industries[]',
+            'type' => 'select',
+            'placeholder' => 'Select Industries',
+            'validation' => 'required',
+            'multiple'  => 'multiple',
+            'options' => []
+        ],
+        [
+            'name' => 'profession[]',
+            'type' => 'select',
+            'placeholder' => 'Select Roles',
+            'validation' => 'required',
+            'multiple'  => 'multiple',
+            'options' => []
+        ],
+    ];
+
+    private $resetPassword = [
+        [
+            'name' => 'pwd',
+            'type' => 'password',
+            'placeholder' => 'Password',
+            'validation' => 'required'
+        ],
+        [
+            'name' => 're-pwd',
+            'type' => 'password',
+            'placeholder' => 'Re-Password',
+            'validation' => 'required'
+        ],
+    ];
+
+
+
+    /**
+     * Auth constructor.
+     *
+     * If user is Logged In Block access to methods of this Controller
+     * Logout Method has exception Though
+     */
+    public function __construct() {
+        parent::__construct();
+
+        if(get_user('id') != '' && !in_array($this->uri->segment(1) ,['logout','terms_and_conditions','validate_unique']) )
+            redirect('dashboard');
+    }
+
+    /**
+     * login_form
+     *
+     * Load the Login Form
+     */
+    public function login_form() {
+        $this->data['loginFields'] = $this->loginFields;
+        $this->load->blade('Auth/login', $this->data);
+    }
+
+    /**
+     * load_forms
+     *
+     * Load the Registration Form
+     */
+    public function register_form() {
+        $this->data['registrationFields'] = $this->registrationFields;
+        $this->data['registrationFields'][10]['options'] = Industry::lists("title","id");
+        $this->load->blade('Auth/register', $this->data);
+    }
+
+    /**
+     * forgot_password_form
+     *
+     * Load the Forgot Password Form
+     */
+    public function fp_form() {
+        $this->data['forgotPassword'] = $this->forgotPassword;
+        $this->load->blade('Auth/forgot_password', $this->data);
+    }
+
+    /**
+     * reset password form
+     */
+    public function reset_form($userId,$passwd_change_token){
+        $this->data['resetPassword'] = $this->resetPassword;
+        $this->data['userId'] = $userId;
+        $this->data['passwd_change_token'] = $passwd_change_token;
+        $this->load->blade('Auth/restore_password', $this->data);
+    }
+
+
+    /**
+     * register
+     *
+     * Handle User Registration
+     */
+    public function register() {
+        if($this->validateFields()){
+            $userData = $this->input->post('users');
+            $userData['password'] = md5($userData['password']);
+            $user = User::create($userData);
+            $userProfile = new User_profile($this->input->post('user_profiles'));
+            $user->user_profile()->save($userProfile);
+
+            $user->industries()->attach($this->input->post('industries'));
+
+            if($user->type == 'agency'){
+                $user->professions()->attach($this->input->post('profession'));
+            }
+            //Send email to Admin
+            $this->send_registration_mail($user);
+            //Send email to agency/employer on registering
+            $useremail = $user->email;
+            $emailData = [
+                'to'        => $useremail,
+                'from'      => WEBSITE_FROM_EMAIL,
+                'subject'   => 'TalentCapture Recruiting Platform Registration'
+            ];
+
+            if($user->type == 'agency') {
+                $emailData['body'] = 'Thank you for registering a new account on the TalentCapture Recruiting Platform.  One of our team members will follow up with you soon to discuss completing the process.';
+            }else{
+                $emailData['body'] = 'Thank you for registering a new account on the TalentCapture Recruiting Platform.  Your account should be ready to go very soon. Stay tuned.';
+            }
+            email($emailData);
+
+            #RP-269 - Changed message for Registered Employer/Agency.
+            //$this->set_flashMsg('success','You have been registered and will shortly receive an email confirming the approval of your account.');
+
+            $this->set_flashMsg('success','Thank you for registering. Your account is being reviewed. You will hear from us soon!');
+            redirect(base_url('login'));
+            //$this->loginUser($user->toArray());
+        }
+    }
+
+    /**
+     * @param $user
+     * @return bool|static
+     *
+     * Send Registration Email to Users.
+     */
+    private function send_registration_mail($user) {
+        $emailData = [
+            'to'        => ADMIN_EMAIL,
+            'from'      => WEBSITE_FROM_EMAIL,
+            'subject'   => 'New user Registration'
+        ];
+        $userProfile = $user->user_profile()->first();
+        $emailData['body'] = "Hello Admin, <br><br> A New user has Registered on the portal. The user Details are as mentioned below : <br><br>";
+        $emailData['body'] .= "Name : {$user->first_name} {$user->last_name} <br>";
+        $emailData['body'] .= "Email : {$user->email}<br>";
+        $emailData['body'] .= "Phone No. : {$user->phone}<br>";
+        $emailData['body'] .= "User Name : {$user->user_name}<br>";
+        $emailData['body'] .= "User Type : ".ucfirst($user->type).'<br>';
+        $emailData['body'] .= "Company : {$userProfile->company_name}<br>";
+        $emailData['body'] .= "Company Website : {$userProfile->company_website_url}<br>";
+        $emailData['body'] .= "Role : {$userProfile->role}";
+
+        return email($emailData);
+    }
+
+    /**
+     * authenticate
+     *
+     * Check if user is Authenticated
+     */
+    public function authenticate(){
+        if($this->validateFields()){
+            $user = User::where([
+                'email' =>  $this->input->post('u_email'),
+                'password'  =>  md5($this->input->post('pwd')),
+
+            ])->where('type','!=','admin')->first();
+
+            if($user == null){
+                $this->set_flashMsg('danger','Invalid Credentials');
+                redirect(base_url('login'));
+            }else{
+                if(!$user->status){
+                    #RP-269 - Changed message for inactive user.
+                    //$msg = 'Your Account has not yet been approved by Site Administrator.<br>You can contact us as <a href="mailto:'.ADMIN_EMAIL.'">'.ADMIN_EMAIL.'</a>';
+
+                    $msg = "Your account is pending while being reviewed. Expect to hear from us soon!";
+                    $this->set_flashMsg('warning',$msg);
+                    redirect(base_url('login'));
+                }
+                $this->loginUser($user->toArray());
+            }
+
+        }
+    }
+
+    /**
+     * loginUser
+     * @param $user
+     *
+     * Login the User into the System
+     */
+    private function loginUser($user){
+        $this->session->set_userdata($user);
+        if(!$user['accept_terms'])
+            redirect(base_url('terms_and_conditions'));
+        else
+            redirect(base_url('dashboard'));
+    }
+
+    /**
+     * forgot_password
+     *
+     * Login the User into the System
+     */
+    public function forgot_password(){
+        $user = User::where(['email'=>$this->input->post('fp_email')])->first();
+        if($user->id == ''){
+            $this->set_flashMsg('danger','No Records Found for this Email');
+            redirect(base_url('forgot_password'));
+        }else{
+            $user->passwd_change_token = generateRandomString(15);
+            $user->save();
+            $msg = 'Click on the link below to Restore Your Password';
+            $resetLink = base_url('auth/restore_password/'.$user->id.'/'.$user->passwd_change_token);
+            $msg .= "<a href='$resetLink'> Click here</a>";
+            $msg .= '<br><br> Thank You';
+            $emailData['body'] = $msg;
+            $emailData['to'] = $user->email;
+            $emailData['from'] = WEBSITE_FROM_EMAIL;
+            $emailData['subject'] = 'reset password';
+            email($emailData);
+
+            // TODO :: Debug error In sending Emails
+            //v(mail('appdev@perituza.com','Restore Password',$msg,'From: yoursite.com'));
+            //changed
+            $this->set_flashMsg('warning','A Password Reset link was sent to your Email ID');
+            redirect(base_url('forgot_password'));
+        }
+    }
+
+    /**
+     * terms_cond
+     *
+     * Show terms and Conditions Page and Update user status
+     */
+    public function terms_cond(){
+        $user = User::find(get_user('id'));
+        if($this->input->post()){
+            $user->accept_terms = 1;
+            $user->save();
+            redirect(base_url('dashboard'));
+        }
+        if($user->type == 'agency'){
+            $this->load->blade('Auth/t_and_c');
+
+        }else if($user->type == "employer"){
+            $this->load->blade('Auth/t_and_c_employer');
+
+        }
+    }
+
+    /**
+     * logout
+     *
+     * Logout the User from the system
+     */
+    public function logout(){
+        $this->session->sess_destroy();
+        $this->set_flashMsg('success','You have been Logged Out');
+        redirect(base_url('login'));
+    }
+
+    public function validate_unique() {
+        $response = [];
+        foreach ($this->input->get() as $tableName=>$array){
+            $modelName = rtrim($tableName,'s');
+            if($modelName::withTrashed()->where($array)->count()){
+                $response = "Already Exists";
+            }else{
+                $response =  true;
+            }
+        }
+        echo json_encode($response);
+    }
+
+    /**
+     * restore_password
+     *
+     * Restore Password functionality 
+     */
+    public function restore_password($userId,$passwd_change_token){
+        $user = User::where([
+            'id' =>  $userId,
+            'passwd_change_token'  =>  $passwd_change_token,
+        ])->where('type','!=','admin')->first();
+
+        if($this->input->post()){
+            $pwd = $this->input->post('pwd');
+            $repwd = $this->input->post('re-pwd');
+            if($repwd == $pwd){
+                $user->password = md5($pwd);
+                $user->passwd_change_token = NULL;
+                $user->save();
+                $this->set_flashMsg('success','Password Reset Successfully');
+                redirect(base_url('login'));
+            }else{
+                $this->set_flashMsg('danger','Password and Re-Password did not mached');
+                redirect(base_url('auth/restore_password/'.$userId.'/'.$passwd_change_token));
+            }
+
+        }else{
+            if(isset($user)){
+                $this->reset_form($userId,$passwd_change_token);
+            }else{
+                $this->set_flashMsg('danger','Invalid Reset Link');
+                redirect(base_url('login'));
+            }
+        }
+    }
+
+}

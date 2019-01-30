@@ -1,0 +1,345 @@
+<?php   
+    $jobmsg = Site_messages::where('type','=','closed_job')->first();
+    if($jobmsg)
+    {
+        $msgvalue = $jobmsg->msg;
+    }
+    else
+    {
+        $msgvalue = 'None';
+    }
+ ?>
+<div  id="candi_box" class="box box-primary" style="height:auto;">
+    <div class="box-header with-border">
+        <div class="col-md-4">
+            <h3 class="box-title"><i class="fa fa-info-circle"></i> Job Details</h3>
+        </div>
+         @unless(isset($popover))
+         @if($job->status != 0 && $job->closed !=1)
+                <div class="col-md-3 no-padding">                      <!-- moving and disabling the share social button for RP-782 -->
+                
+                <div class="col-md-4">        
+                            <div class="fb-share-button" data-href="<?php echo base_url('news/jobdescription/'.$job->id.'/'.get_user('id')); ?>" data-layout="button" data-size="small" data-mobile-iframe="true">
+                            <a class="fb-xfbml-parse-ignore" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=<?php echo base_url('news/jobdescription/'.$job->id.'/'.get_user('id')); ?>&amp;src=sdkpreparse">Share</a>
+                        </div>
+                </div>
+                <div class="col-md-4">
+                    <script src="//platform.linkedin.com/in.js" type="text/javascript"> lang: en_US</script>
+                    <script type="IN/Share" data-url="<?php echo base_url('news/jobdescription/'.$job->id.'/'.get_user('id')); ?>"></script>
+                </div>
+                <div class="col-md-4">
+                    <script type="text/javascript" async src="https://platform.twitter.com/widgets.js"></script>
+                    <a href="javascript:;" class="twitter-share-button" data-lang="en" data-text="check out talentcapture new job post link " data-url="<?php echo base_url('news/jobdescription/'.$job->id.'/'.get_user('id')); ?>">Tweet</a>
+
+                </div>
+               </div>
+               @else
+               <div class="desible">
+               </div>
+                <div class="col-md-3 no-padding">
+               
+                <div class="col-md-4">        
+                        <div class="fb-share-button disabled" data-href="<?php echo base_url('news/jobdescription/'.$job->id.'/'.get_user('id')); ?>" data-layout="button" data-size="small" data-mobile-iframe="true">
+                        <a class="fb-xfbml-parse-ignore" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=<?php echo base_url('news/jobdescription/'.$job->id.'/'.get_user('id')); ?>&amp;src=sdkpreparse">Share</a></div>
+                </div>
+                <div class="col-md-4">
+                    <script src="//platform.linkedin.com/in.js" type="text/javascript"> lang: en_US</script>
+                    <script type="IN/Share" data-url="<?php echo base_url('news/jobdescription/'.$job->id.'/'.get_user('id')); ?>"></script>
+                </div>
+                <div class="col-md-4">
+                    <script type="text/javascript" async src="https://platform.twitter.com/widgets.js"></script>
+                    <a href="javascript:;" class="twitter-share-button" data-lang="en" data-text="check out talentcapture new job post link " data-url="<?php echo base_url('news/jobdescription/'.$job->id.'/'.get_user('id')); ?>">Tweet</a>
+
+                </div>
+               </div>
+               @endif
+               @endunless       <!--end of moving and disabling the share social button for RP-782 -->
+        <!-- /.box-tools -->
+        <div class="box-tools col-md-5">
+            <div class="has-feedback pull-right-job">
+                @if($job->closed)
+                    <label class="label margin-r-5 label-danger">Closed</label>
+                    <span class="text-muted"><i class="fa fa-calendar margin-r-5"></i> {{ date('d M, Y', strtotime($job->updated_at ))}}</span>
+                @else
+                    <span class="text-muted margin-r-5"><i class="fa fa-calendar margin-r-5"></i> {{ date('d M, Y', strtotime($job->updated_at ))}}</span>
+                    <label class="label margin-r-5 label-{{ ($job->status) ? 'success' : 'warning' }}">
+                        {{ ($job->status) ? 'Active' : 'Awaiting Admin Approval' }}
+                    </label>
+                @endif
+            </div>
+        </div>
+    </div>
+    <!-- /.box-header -->
+    <div class="box-body">
+        {{ flash_msg() }}
+        <div class="col-md-{{ isset($popover) ? '12' : '10' }}" id="job-details">
+            <dl class="dl-horizontal">
+
+                <dt>Job Title</dt>
+                <dd>{{ $job->title }}</dd>
+
+                <dt>Industry</dt>
+                <dd>{{ $job->industry()->first()->title;}}
+
+                <dt>Profession</dt>
+                <dd>{{ $job->profession()->first()->title;}}</dd>
+
+                <dt>Primary Skills Required</dt>
+                <dd>{{ $job->skills}}</dd>
+
+                <dt>Location</dt>
+                <dd>{{ $job->job_location }}</dd>
+
+                <dt>Resource Type</dt>
+                <dd>{{ $job->position_type }}</dd>
+                @if(!empty($job->openings))    <!-- Showing the opening to Job Detail page For RP-787 -->
+                <dt>Openings</dt>
+                <dd>{{ $job->openings }}</dd>
+                @endif
+                @if(get_user('type') == 'agency')
+                <dt>Client Name</dt>
+                <dd>{{ ($job->client_name_confidential) ? 'Confidential' : $job->client_name }}</dd>
+                @endif
+                <dt>Salary or Hourly rate</dt>
+                <dd>{{ $job->salary }}</dd>
+                
+                @if(get_user('type') == 'agency')
+                    <dt>Warranty Period</dt>
+                    <dd>{{ $job->warranty_period }}</dd>
+                @endif
+
+                @if(!empty($job->placement_fee))
+                    <dt>Placement Fee</dt>
+                    <dd>{{ $job->placement_fee }}%</dd> 
+                @endif 
+
+                @if(get_user('type') == 'agency')
+                    <dt>Split Fee Details</dt>
+                    <dd>{{ $job->split_percentage }}%</dd>
+                @endif
+
+                @if(!empty($job->visa_sponsorship))
+                <dt>Visa Sponsorship?</dt>
+                <dd>{{ $job->visa_sponsorship}}</dd>
+                @endif
+
+                @if(!empty($job->relocate))
+                <dt>Relocate?</dt>
+                <dd>{{ $job->relocate}}</dd>
+                @endif
+
+                @if(!empty($job->note))
+                <dt>General Notes</dt>
+                <dd>{{ $job->note }}</dd>
+                @endif
+                    
+            </dl>
+            
+        </div>
+        @if(!isset($popover))
+            <div class="col-md-2 no-padding no-margin text-center" id="job-actions">
+                @if($job->closed)
+                    <a href="{{ base_url('jobs/reopen_job/'.$job->id) }}" onclick="return confirm('You are about to copy this closed job as a new active job. Continue?');" class="btn btn-app">
+                        <i class="fa fa-copy"></i> Copy New
+                    </a>
+                    <a href="{{ base_url('jobs/delete_job/'.$job->id) }}" onclick="return confirm('All contents pertaining to this Job will be removed. Continue?');" class="btn btn-app">
+                        <i class="fa fa-trash"></i> Delete
+                    </a>
+                @else
+                    {{--@if(count($job->candidates()->where("client_accepted",1)->lists("name", 'id')))
+                        <a class="btn btn-app" href="{{ base_url('jobs/hire/'.$job->id) }}">
+                            <i class="fa fa-user-plus"></i> Hire
+                        </a>
+                    @endif--}}
+                    <a class="btn btn-app" href="{{ base_url('jobs/edit_job/'.$job->id) }}" >
+                        <i class="fa fa-edit"></i> Edit
+                    </a>
+                    
+                    <a class="btn btn-app" href="{{ base_url('jobs/close_job/'.$job->id) }}" 
+                      onclick="return confirmclosed()">
+                        <i class="fa fa-lock"></i> Close Job
+                    </a>
+                @endif
+            </div>
+        @endif
+         <div class="col-md-12">
+                <div class="col-md-1">
+                &nbsp;
+                </div>
+                @unless(isset($popover))
+                <div class="col-md-10">
+                    <?php if ($job->closed != 1) { ?>
+                        <div class="box-body">
+                        <form action="{{ base_url('jobs/upload_job_attachment/'.$job->id) }}" method="post" class="form-horizontal validateForm" enctype="multipart/form-data">
+                            {{ generate_form_fields($jobattachmentuploadFields, 2) }}
+                            <div class="form-group">
+                                <div class="col-sm-offset-2 col-sm-9">
+                                    <button type="submit" class="btn btn-danger">Upload</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <?php } ?>
+                    </div>
+                    <div class="col-md-2">
+                    &nbsp;
+                    </div>
+                    @endunless
+            </div>
+            @if($job->question)
+                <strong>
+                <a href="#screenQuestion" data-toggle="modal" rel="tooltip" title="Interview Questions" class="pull-left" style="color:#00008b;margin-left: 29px;">Interview Questions</a>
+                </strong>  <!--  Changing the Candidate Screening Questions to Interview Question -->
+                <br>
+
+                <div class="modal fade" tabindex="-1" role="dialog" id="screenQuestion">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span></button>
+                                <h4 class="modal-title">Interview Questions</h4>   <!--  Changing the Candidate Screening Questions to Interview Question -->
+                            </div>
+                            <div class="modal-body">
+                                <form action="" method="post" id="requestPaymentForm">
+                                    <dl>
+                                        <dt></dt>
+                                        <dd>{{ $job->question }}</dd>
+                                    </dl>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                        <!-- /.modal-content -->
+                    </div>
+                    <!-- /.modal-dialog -->
+                </div>
+            @endif
+            @unless(isset($popover))
+            <div class="col-md-13 no-padding">                      
+                    <!-- Adding Job description before the files and implemented the functionality as per the requirement for ticket RP-872 -->
+                    <div class="col-md-12">
+                        <div class="col-md-3">
+                        <dt style="margin-top: 20px;"><a href="javascript:void(0)" iframe-data="<?php echo base_url().'jobs/job_descriptionfor_pdf/'.$job->id; ?>" download-data="<?php echo base_url().'jobs/job_descriptionfor_pdf/'.$job->id; ?>" class="files_btn" style="color:#00008b;" rel="tooltip" title="Job Description">
+                            Job Description</a>  <!-- Adding hypr link to the job description for RP-782 -->
+                        </dt>
+                        </div>
+                        <div class="col-md-9">
+                           <div class="box-body">
+                        <ul class="list-group list-inline">
+                            <?php $jobdocuments = Job_documents::where(['job_id' => $job->id])->get(); ?>
+                            @foreach ($jobdocuments as $jobdocument)
+                                <li class="list-group-item">
+                                    <a href="javascript:void(0)" iframe-data="https://docs.google.com/viewer?url={{ base_url('public/uploads/docs/'.$jobdocument->title) }}&embedded=true" download-data="{{ base_url('public/uploads/docs/'.$jobdocument->title) }}" class="files_btn">
+                                    <small class="text-info">{{$jobdocument->title}}</small>
+                                </a><a href="{{ base_url('jobs/delete_job_attachment/'.$job->id.'/'.$jobdocument->id) }}"><i class="fa fa-trash pull-right text-warning delete-taltnt-resume" data-toggle="tooltip" title="Delete"></i>
+                            </li>
+                            @endforeach
+                        </ul>  
+                    </div> 
+                        </div>
+                </div>
+                 <!-- end Adding Job description before the files and implemented the functionality as per the requirement for ticket RP-872 -->
+            </div>
+            @endunless
+         <!-- Adding Job description before the files and implemented the functionality as per the requirement for ticket RP-872 -->
+        <div class="col-md-12">
+            <div class="tab-content">
+            <div class="active tab-pane">
+                <dl>
+                    <dt style="float: right;padding-right:3px;">
+                        <a class="pull-right toggle-display" href="javascript:void(0)">Hide</a>
+                        <a href="<?php echo base_url().'jobs/job_descriptionfor_pdf/'.$job->id; ?>" title="Download File" id="download_link_url" style="padding: 5px;" download><i class="fa fa-download"></i></a> 
+                        </dt>
+                    <dd>   
+                        <iframe src="<?php echo base_url().'jobs/job_descriptionfor_pdf/'.$job->id; ?>"  width="100%" style="height:40em" id="replace-iframe-url">
+                        </iframe>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+        </div>
+        <script type="text/javascript">
+            $(".files_btn").click(function(){
+                $('#replace-iframe-url').attr("src", $(this).attr('iframe-data'));
+                $('#download_link_url').prop("href", $(this).attr('download-data'))
+            })
+        </script>
+         <!--End Adding Job description before the files and implemented the functionality as per the requirement for ticket RP-872 -->
+    </div>
+</div>
+<!-- /. box -->
+
+
+@section('end-script')
+    @parent
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_GB/sdk.js#xfbml=1&version=v2.8&appId=1221530674563220";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+    <script type="application/javascript">
+        var body = $('body');
+        body.on('change','input[name="candidate-hired"]', function() {
+            var value = parseInt($(this).val());
+            if(value){
+                $("#hired-candidates").prop("disabled", false);
+                $('#hired-candidates-container').show();
+                $('#close-without-hiring').hide();
+            }else{
+                $("#hired-candidates").prop("disabled", true);
+                $('#hired-candidates-container').hide();
+                $('#close-without-hiring').show();
+            }
+        });
+
+        function confirmclosed()
+        {
+            var msg = '<?php echo $msgvalue; ?>';
+            var r = confirm(msg);
+            if(r == false)
+            {
+                return false;
+            }
+        }
+    </script>
+
+    <script>
+        $('[rel="popover"]').popover({
+            trigger: "hover",
+            html:true,
+            container: '#main-content',
+            content: function() {
+                return $('#'+$(this).data('content_id')).html();
+            }
+        });
+    </script>
+    
+    
+<!--
+    @if(!isset($popover))
+    <script>
+		$(document).ready(function()
+        {
+		 document.title="{{ $job->title }}";
+        });
+    </script>
+    @endif
+-->
+   
+    <!--- Start Display Active and Inactive Jobs's List--->
+    @if($job->closed)
+        <script>
+            $('#active').hide();
+        </script>
+    @else
+        <script>
+            $('#closed').hide();
+        </script>
+    @endif
+    <!--- End Display Active and Inactive Jobs's List--->
+@endsection

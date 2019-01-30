@@ -1,0 +1,233 @@
+<div class="box box-warning">
+    <div class="box-header with-border">
+        <h3 class="box-title"><?php echo ($candidates->count() > 1) ? 'Candidates' : 'Candidates'; ?></h3>
+    </div>
+    <!-- /.box-header -->
+
+    <div class="box-body <?php echo ($candidatesCount = $candidates->count()) ? 'no-padding' : ''; ?>">
+        <?php if($candidates->count()): ?>
+        <?php
+			$hired_tab="active";
+			$accepted_tab="";
+			$pending_tab="";
+			$rejected_tab="";
+		?>
+			<?php foreach($candidates as $c): ?>
+				<?php if($c->hired): ?>
+					<?php if(isset($candidate->id) && $candidate->id==$c->id): ?>
+						<?php
+							$hired_tab="active";
+							$accepted_tab="";
+							$pending_tab="";
+							$rejected_tab="";
+						?>
+					<?php endif; ?>
+				<?php elseif($job->closed): ?>
+				<?php elseif($c->client_accepted): ?>
+					<?php if($c->client_accepted == 1): ?>
+						<?php if(isset($candidate->id) && $candidate->id==$c->id): ?>
+							<?php
+								$hired_tab="";
+								$accepted_tab="active";
+								$pending_tab="";
+								$rejected_tab="";
+							?>
+						<?php endif; ?>
+					<?php elseif($c->client_accepted == -1): ?>	
+						<?php if(isset($candidate->id) && $candidate->id==$c->id): ?>
+							<?php
+								$hired_tab="";
+								$accepted_tab="";
+								$pending_tab="";
+								$rejected_tab="active";
+							?>
+						<?php endif; ?>
+					<?php endif; ?>
+				<?php else: ?>
+					<?php if(isset($candidate->id) && $candidate->id==$c->id): ?>
+						<?php
+							$hired_tab="";
+							$accepted_tab="";
+							$pending_tab="active";
+							$rejected_tab="";
+						?>
+					<?php endif; ?>
+				<?php endif; ?>
+			<?php endforeach; ?>
+            <div class="nav-tabs-custom">
+				<ul class="nav nav-tabs">
+					<li class="<?php echo $pending_tab; ?>"><a id="pending-tab_link" href="#pending-tab" data-toggle="tab"><i class="fa fa-exclamation-circle text-warning fa-2x" data-toggle="tooltip" title="Approval Pending"></i></a></li>
+					<li class="<?php echo $accepted_tab; ?>"><a id="accepted-tab_link" href="#accepted-tab" data-toggle="tab"><i class="fa fa-thumbs-up text-success fa-2x" data-toggle="tooltip" title="Accepted"></i></a></li>
+					<li class="<?php echo $hired_tab; ?>"><a id="hired-tab_link" href="#hired-tab" data-toggle="tab"><i class="fa fa-handshake-o text-success fa-2x" data-toggle="tooltip" title="Hired"></i></a></li>
+					<li class="<?php echo $rejected_tab; ?>"><a id="rejected-tab_link" href="#rejected-tab" data-toggle="tab"><i class="fa fa-thumbs-down text-danger fa-2x" data-toggle="tooltip" title="Rejected"></i></a></li>
+				</ul>
+				<div class="tab-content">
+					<div class="<?php echo $accepted_tab; ?> tab-pane" id="accepted-tab">
+					<ul class="nav nav-pills nav-stacked">
+					<?php $i=0; ?>
+						<?php foreach($candidates as $c): ?>
+							<?php if($c->hired): ?>
+							<?php elseif($job->closed): ?>
+							<?php elseif($c->client_accepted): ?>
+								<?php if($c->client_accepted == 1): ?>
+									<li <?php echo (isset($candidate->id) && $candidate->id==$c->id) ? 'class="active"': ''; ?>>
+										<a style="font-size: 16px" id="accepted-tab_<?php echo $i; ?>" href="<?php echo base_url('jobs/candidate_detail/'.$job->id.'/'.$c->id); ?>" >
+											<!--<i class="fa fa-user"></i>--> <?php echo $c->name; ?>
+
+										</a>
+									</li>
+									<?php $i++; ?>
+								<?php endif; ?>
+							<?php endif; ?>
+						<?php endforeach; ?>	
+					</ul>
+					</div>
+					<div class="<?php echo $pending_tab; ?> tab-pane" id="pending-tab">
+					<ul class="nav nav-pills nav-stacked">
+					<?php $i=0; ?>
+						<?php foreach($candidates as $c): ?>
+							<?php if($c->hired): ?>
+							<?php elseif($job->closed): ?>
+							<?php elseif($c->client_accepted): ?>
+							<?php else: ?>
+								<li <?php echo (isset($candidate->id) && $candidate->id==$c->id) ? 'class="active"': ''; ?>>
+									<a style="font-size: 16px" id="pending-tab_<?php echo $i; ?>" href="<?php echo base_url('jobs/candidate_detail/'.$job->id.'/'.$c->id); ?>" >
+										<!--<i class="fa fa-user"></i>--> <?php echo $c->name; ?>
+
+									</a>
+								</li>
+								<?php $i++; ?>
+							<?php endif; ?>
+						<?php endforeach; ?>		
+					</ul>
+					</div>
+					<div class="<?php echo $hired_tab; ?> tab-pane" id="hired-tab">
+					<ul class="nav nav-pills nav-stacked">
+					<?php $i=0; ?>
+						<?php foreach($candidates as $c): ?>
+						   <?php if($c->hired): ?>
+								<li <?php echo (isset($candidate->id) && $candidate->id==$c->id) ? 'class="active"': ''; ?>>
+									<a style="font-size: 16px" id="hired-tab_<?php echo $i; ?>" href="<?php echo base_url('jobs/candidate_detail/'.$job->id.'/'.$c->id); ?>" >
+										<!--<i class="fa fa-user"></i>--> <?php echo $c->name; ?>
+
+									</a>
+								</li>
+								<?php $i++; ?>
+							<?php endif; ?>
+						<?php endforeach; ?>
+					</ul>
+					</div>
+					<div class="<?php echo $rejected_tab; ?> tab-pane" id="rejected-tab">
+					<ul class="nav nav-pills nav-stacked">
+					<?php $i=0; ?>
+						<?php foreach($candidates as $c): ?>
+							<?php if($c->hired): ?>
+							<?php elseif($job->closed): ?>
+							<?php elseif($c->client_accepted): ?>
+								<?php if($c->client_accepted == -1): ?>
+									<li <?php echo (isset($candidate->id) && $candidate->id==$c->id) ? 'class="active"': ''; ?>>
+										<a style="font-size: 16px" id="rejected-tab_<?php echo $i; ?>" href="<?php echo base_url('jobs/candidate_detail/'.$job->id.'/'.$c->id); ?>" >
+											<!--<i class="fa fa-user"></i>--> <?php echo $c->name; ?>
+
+										</a>
+									</li>
+									<?php $i++; ?>
+								<?php endif; ?>
+							<?php endif; ?>
+						<?php endforeach; ?>		
+					</ul>
+					</div>
+				</div>
+			</div>
+               
+               
+               
+               
+               
+               
+               <?php /*
+                @foreach($candidates as $c)
+                    <li {{ (isset($candidate->id) && $candidate->id==$c->id) ? 'class="active"': '' }}>
+                        <a href="{{ base_url('jobs/candidate_detail/'.$job->id.'/'.$c->id) }}" >
+                            <i class="fa fa-user"></i> {{ $c->name }}
+                            ?>@if($c->hired)
+                                <i class="fa fa-check-circle pull-right text-success" data-toggle="tooltip" title="Candidate Hired"></i>
+                            @elseif($job->closed)
+                                <i class="fa fa-circle-o pull-right" style="color: #dd4b39" data-toggle="tooltip" title="Candidate Not Selected"></i>
+                            @elseif($c->client_accepted)
+                                <i class="fa fa-{{ ($c->client_accepted == 1) ? 'check text-success' : 'times-circle text-danger' }} pull-right" data-toggle="tooltip" title="Candidate {{ ($c->client_accepted == 1) ? 'Accepted' : 'Rejected' }}"></i>
+                            @else
+                                <i class="fa fa-exclamation-circle pull-right text-warning" data-toggle="tooltip" title="Pending Approval"></i>
+                            @endif
+                        </a>
+                    </li>
+                @endforeach
+                <?php */?>
+                
+                
+                
+                
+            </ul>
+        <?php else: ?>
+            <p class="text-info">No candidates have been submitted to this job.</p>
+        <?php endif; ?>
+    </div>
+</div>
+<script>
+$('#accepted-tab_link').on('click', function() 
+	{
+		var element =  document.getElementById('accepted-tab_0');
+		if (typeof(element) != 'undefined' && element != null)
+		{
+			document.getElementById('accepted-tab_0').click();
+		}
+		else
+		{
+			document.getElementById('candi_box').innerHTML='<br><br><br><br><br><center>There are no candidates to display.</center><br><br><br><br><br>';
+		}
+	}
+);
+	
+$('#pending-tab_link').on('click', function() 
+	{
+		var element =  document.getElementById('pending-tab_0');
+		if (typeof(element) != 'undefined' && element != null)
+		{
+			document.getElementById('pending-tab_0').click();
+		}
+		else
+		{
+			document.getElementById('candi_box').innerHTML='<br><br><br><br><br><center>There are no candidates to display.</center><br><br><br><br><br>';
+		}
+	}
+);
+	
+$('#hired-tab_link').on('click', function() 
+	{
+		var element =  document.getElementById('hired-tab_0');
+		if (typeof(element) != 'undefined' && element != null)
+		{
+			document.getElementById('hired-tab_0').click();
+		}
+		else
+		{
+			document.getElementById('candi_box').innerHTML='<br><br><br><br><br><center>There are no candidates to display.</center><br><br><br><br><br>';
+		}
+	}
+);
+	
+$('#rejected-tab_link').on('click', function() 
+	{
+		var element =  document.getElementById('rejected-tab_0');
+		if (typeof(element) != 'undefined' && element != null)
+		{
+			document.getElementById('rejected-tab_0').click();
+		}
+		else
+		{
+			document.getElementById('candi_box').innerHTML='<br><br><br><br><br><center>There are no candidates to display.</center><br><br><br><br><br>';
+		}
+	}
+);
+</script>
+<!-- /. box -->
