@@ -24,7 +24,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |
 */
 
-$config['base_url'] = 'http://stg.talentcapture.us/';
+$config['base_url'] = 'http://talentcapture.azurewebsites.net/';
 
 //$config['base_url'] = 'http://raincatcherportal.com/dev/raincatcher/';
 
