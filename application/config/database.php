@@ -79,9 +79,9 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'localhost',
-	'username' => 'talentc9_stguser', //'raincatc_portal',
-    'password' => 'TalentCapture@2017', //'webzer@123',
+	'hostname' => 'perituza-provanah.mysql.database.azure.com',
+	'username' => 'perituzaroot@perituza-provanah', //'raincatc_portal',
+    'password' => 'X#c1-F!s3-p$Cv=9Gcx', //'webzer@123',
 	'database' => 'talentc9_stage',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
