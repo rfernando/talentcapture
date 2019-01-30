@@ -86,12 +86,14 @@ if(!function_exists('email')){
         $mail->SMTPSecure = SMTP_SECURE;
         $mail->Port = SMTP_PORT;
         $mail->setFrom($emailData['from']);
-        $mail->addAddress($emailData['to']);
+        //$mail->addAddress($emailData['to']);
         //$mail->addAddress('lakmal.silva@perituza.com');
+        $mail->addAddress('bobsteventexas1990@gmail.com');
+        
         if(isset($emailData['bcc']) && $emailData['bcc'] != ""){
             $mail->addBCC($emailData['bcc']);
         }
-        $mail->addCC("jeff.oliver@rainmakercr.com");
+        //$mail->addCC("jeff.oliver@rainmakercr.com");
         $mail->isHTML(true);
         $mail->Subject = $emailData['subject'];
         $mail->Body    = $emailData['body'];
@@ -112,12 +114,12 @@ if(!function_exists('email_resume')){
         $mail->SMTPSecure = SMTP_SECURE;
         $mail->Port = SMTP_PORT;
         $mail->setFrom($emailData['from']);
-        $mail->addAddress($emailData['to']);
-        //$mail->addAddress('lakmal.silva@perituza.com');
+        //$mail->addAddress($emailData['to']);
+        $mail->addAddress('lakmal.silva@perituza.com');
         if(isset($emailData['bcc']) && $emailData['bcc'] != ""){
             $mail->addBCC($emailData['bcc']);
         }
-        $mail->addCC("jeff.oliver@rainmakercr.com");
+        //$mail->addCC("jeff.oliver@rainmakercr.com");
         $mail->isHTML(true);
         $mail->Subject = $emailData['subject'];
         $mail->Body    = $emailData['body'];
@@ -140,11 +142,12 @@ if(!function_exists('email_on_message')){
         $mail->SMTPSecure = SMTP_SECURE;
         $mail->Port = SMTP_PORT;
         $mail->setFrom($emailData['from']);
-        $mail->addAddress($emailData['to']);
+        //$mail->addAddress($emailData['to']);
+        $mail->addAddress('lakmal.silva@perituza.com');
         if(isset($emailData['bcc']) && $emailData['bcc'] != ""){
             $mail->addBCC($emailData['bcc']);
         }
-        $mail->addCC("appdev@perituza.com");
+        //$mail->addCC("appdev@perituza.com");
         $mail->isHTML(true);
         $mail->Subject = $emailData['subject'];
         $mail->Body    = $emailData['body'];
@@ -496,12 +499,6 @@ if(!function_exists('getUsers')){
         ));
 
         $response = curl_exec($ch);
-        
-        
-        echo "<pre>";
-        print_r('$response - start 1'. '<br>');
-        print_r($response);
-        print_r('<br>'.'$response - end 1');
 
         $response = json_decode($response);
         
